@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MovieController implements HttpHandler {
@@ -39,12 +40,13 @@ public class MovieController implements HttpHandler {
     private void handleGetAllRequest(String method, HttpExchange exchange) throws IOException {
         switch (method) {
             case "GET" -> {
-                ArrayList<String> movieArray = new ArrayList<>();
-                for (Movie movies : movies) {
-                    movieArray.add("{\"id\": \"" + movies.getId() + "\", \"title\": \"" + movies.getTitle() + "\", \"genre\": \"" + movies.getGenre() + "\", \"releaseYear\": " + movies.getReleaseYear() + "}");
+                                List<String> movieArray = new ArrayList<String>();
+                for (Movie movie : movies) {
+                    movieArray.add("{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}");
                 }
                 String response = "[" + String.join(",", movieArray) + "]";
                 ApiUtils.sendResponse(exchange, 200, response);
+
             }
             default -> {
                 String response = "{ \"error\": \"Method not allowed\" }";
@@ -176,14 +178,16 @@ public class MovieController implements HttpHandler {
 //
 //        int releaseYearStart = requestBody.indexOf("\"releaseYear\":\"") + 15;
 //        int releaseYearEnd = requestBody.indexOf("\"", releaseYearStart);
-        String releaseYear = extractJsonValue(requestBody, "releaseYear");
+        String releaseYear2 = extractJsonValue(requestBody, "releaseYear");
+        assert releaseYear2 != null;
+        int releaseYear = Integer.parseInt(releaseYear2);
 //        = requestBody.substring(releaseYearStart, releaseYearEnd);
 
 
         switch (method) {
             case "PUT" -> {
-                if (!requestBody.contains("\"id\":\"") || !requestBody.contains("\"genre\":\"") || !requestBody.contains("\"title\":\"") || !requestBody.contains("\"releaseYear\":\"") ||
-                        id.isEmpty() || title.isEmpty() || genre.isEmpty() || releaseYear.isEmpty()) {
+                if (!requestBody.contains("\"id\": \"") || !requestBody.contains("\"genre\": \"") || !requestBody.contains("\"title\": \"") || !requestBody.contains("\"releaseYear\": ") ||
+                        Objects.requireNonNull(id).isEmpty() || Objects.requireNonNull(title).isEmpty() || Objects.requireNonNull(genre).isEmpty() || releaseYear <0) {
                     String response = "{ \"error\": \"Invalid movie data\" }";
                     ApiUtils.sendResponse(exchange, 400, response);
                 } else {
@@ -191,7 +195,7 @@ public class MovieController implements HttpHandler {
                         if (movies.getId().equals(UUID.fromString(id))) {
                             movies.setTitle(title);
                             movies.setGenre(genre);
-                            movies.setReleaseYear(Integer.parseInt(releaseYear));
+                            movies.setReleaseYear(releaseYear);
 
                             String response = "{ \"message\": \"Movie updated successfully\" }";
                             ApiUtils.sendResponse(exchange, 200, response);
@@ -246,5 +250,20 @@ public class MovieController implements HttpHandler {
             value = value.substring(1, value.length() - 1);
         }
         return value;
+//        String searchKey = "\"" + key + "\":";
+//        int start = json.indexOf(searchKey);
+//
+//        if (start == -1) return null;
+//
+//        int colon = json.indexOf(":", start);
+//        int endIndex = json.indexOf("\"", start);
+//
+//        if (endIndex == -1) {
+//            String numberPart=json.substring((colon+1));
+//            return numberPart.replaceAll("[^0-9]"," ");
+//        }
+//
+//        int valueEnd = json.indexOf("\"", endIndex+1);
+//        return json.substring(endIndex+1, valueEnd);
     }
 }
