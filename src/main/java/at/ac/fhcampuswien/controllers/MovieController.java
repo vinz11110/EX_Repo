@@ -6,8 +6,11 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class MovieController implements HttpHandler {
     private final String BASE = "/api/movies";
@@ -35,7 +38,7 @@ public class MovieController implements HttpHandler {
         switch (method) {
             case "GET" -> {
                 ArrayList<String> movieArray = new ArrayList<>();
-                for (Movie movies : movieList) {
+                for (Movie movies : movies) {
                     movieArray.add("{\"id\": \"" + movies.getId() + "\", \"title\": \"" + movies.getTitle() + "\", \"genre\": \"" + movies.getGenre() + "\", \"releaseYear\": " + movies.getReleaseYear() + "}");
                 }
                 String response = "[" + String.join(",", movieArray) + "]";
@@ -153,22 +156,27 @@ public class MovieController implements HttpHandler {
     private void handleUpdateRequest(String method, HttpExchange exchange) throws IOException {
         InputStream inputStream = exchange.getRequestBody();
         String requestBody = new String(inputStream.readAllBytes());
+//
+//        int idStart = requestBody.indexOf("\"id\":\"") + 6;
+//        int idEnd = requestBody.indexOf("\"", idStart);
+        String id = extractJsonValue(requestBody, "id");
+//        requestBody.substring(idStart, idEnd);
+//
+//        int titleStart = requestBody.indexOf("\"title\":\"") + 9;
+//        int titleEnd = requestBody.indexOf("\"", titleStart);
+        String title = extractJsonValue(requestBody, "title");
+//        requestBody.substring(titleStart, titleEnd);
+//
+//        int genreStart = requestBody.indexOf("\"genre\":\"") + 9;
+//        int genreEnd = requestBody.indexOf("\"", genreStart);
+        String genre = extractJsonValue(requestBody, "genre");
+//        requestBody.substring(genreStart, genreEnd);
+//
+//        int releaseYearStart = requestBody.indexOf("\"releaseYear\":\"") + 15;
+//        int releaseYearEnd = requestBody.indexOf("\"", releaseYearStart);
+        String releaseYear = extractJsonValue(requestBody, "releaseYear");
+//        = requestBody.substring(releaseYearStart, releaseYearEnd);
 
-        int idStart = requestBody.indexOf("\"id\":\"") + 6;
-        int idEnd = requestBody.indexOf("\"", idStart);
-        String id = requestBody.substring(idStart, idEnd);
-
-        int titleStart = requestBody.indexOf("\"title\":\"") + 9;
-        int titleEnd = requestBody.indexOf("\"", titleStart);
-        String title = requestBody.substring(titleStart, titleEnd);
-
-        int genreStart = requestBody.indexOf("\"genre\":\"") + 9;
-        int genreEnd = requestBody.indexOf("\"", genreStart);
-        String genre = requestBody.substring(genreStart, genreEnd);
-
-        int releaseYearStart = requestBody.indexOf("\"releaseYear\":\"") + 15;
-        int releaseYearEnd = requestBody.indexOf("\"", releaseYearStart);
-        String releaseYear = requestBody.substring(releaseYearStart, releaseYearEnd);
 
         switch (method) {
             case "PUT" -> {
@@ -177,11 +185,11 @@ public class MovieController implements HttpHandler {
                     String response = "{ \"error\": \"Invalid movie data\" }";
                     ApiUtils.sendResponse(exchange, 400, response);
                 } else {
-                    for (Movie movies : movieList) {
-                        if (movies.getId.equals(id)) {
+                    for (Movie movies : movies) {
+                        if (movies.getId().equals(UUID.fromString(id))) {
                             movies.setTitle(title);
                             movies.setGenre(genre);
-                            movies.setReleaseYear(releaseYear);
+                            movies.setReleaseYear(Integer.parseInt(releaseYear));
 
                             String response = "{ \"message\": \"Movie updated successfully\" }";
                             ApiUtils.sendResponse(exchange, 200, response);
