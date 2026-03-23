@@ -26,6 +26,9 @@ public class MovieController implements HttpHandler {
             case BASE -> handleBaseRequest(method, exchange);
             case BASE + "/" -> handleBaseRequest(method, exchange);
             case BASE + "/delete" -> handleDeleteRequest(method, exchange);
+            case BASE + "/add" -> handlePostRequest(method, exchange);
+            case BASE + "/getAll" -> handleGetAllRequest(method, exchange);
+            case BASE + "/update" -> handleUpdateRequest();
 
             default -> {
                 //if endpoint doesn't exist, return error
