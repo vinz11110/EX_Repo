@@ -31,6 +31,47 @@ public class MovieController implements HttpHandler {
             }
         }
     }
+    private void handlePostRequest(String method, HttpExchange exchange) throws IOException{
+        switch(method){
+            case "POST" -> {
+                String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                Movie movie = parseMovie(requestBody);
+
+                boolean exists = movies.stream().anyMatch(m ->
+                        m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
+                                m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
+                                m.getReleaseYear() == movie.getReleaseYear());
+                if(exists) {
+                    String response = "{ \"error\": \"Movie already exists\"}";
+                    ApiUtils.sendResponse(exchange, 400, response);
+                    return;
+                }
+                else if(movie == null ||
+                        movie.getTitle() == null ||
+                        movie.getGenre() == null ||
+                        movie.getReleaseYear() < 1900 ||
+                        movie.getReleaseYear() > 2100){
+
+                    String response = "{ \"error\": \"Invalid movie Data\"}";
+                    ApiUtils.sendResponse(exchange, 400, response);
+                    return;
+                }
+                else{
+                    movies.add(movie);
+
+                    String response = "{ \"message:\": \"Movie added successfully\" }";
+                    ApiUtils.sendResponse(exchange, 201, response);
+                    return;
+                }
+
+
+            }
+            default -> {
+                String response = "{ \"error\": \"Method not allowed\" }";
+                ApiUtils.sendResponse(exchange, 405, response);
+            }
+        }
+    }
 
     private void handleDeleteRequest(String method, HttpExchange exchange) throws IOException {
         if (!method.equals("DELETE")) {
@@ -90,6 +131,23 @@ public class MovieController implements HttpHandler {
                 String response = "{ \"error\": \"Method not allowed\" }";
                 ApiUtils.sendResponse(exchange, 405, response);
             }
+        }
+    }
+    private Movie parseMovie(String jsonFile){
+        try {
+            String title = extractJsonValue(jsonFile, "title");
+            String genre = extractJsonValue(jsonFile, "genre");
+            String releaseYearStr = extractJsonValue(jsonFile, "releaseYear");
+
+            if (title == null || genre == null || releaseYearStr == null){
+                return null;
+            }
+
+            int releaseYear = Integer.parseInt(releaseYearStr);
+
+            return new Movie(title,genre,releaseYear);
+        } catch (Exception e){
+            return null;
         }
     }
 
