@@ -108,7 +108,7 @@ public class MovieController implements HttpHandler {
         String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
         if (requestBody == null || requestBody.trim().isEmpty()) {
-            String response = "{ \"error\": \"Bad Request\" }";
+            String response = "{ \"error\": \"Invalid movie data\" }";
             ApiUtils.sendResponse(exchange, 400, response);
             return;
         }
@@ -218,12 +218,10 @@ public class MovieController implements HttpHandler {
             String title = extractJsonValue(jsonFile, "title");
             String genre = extractJsonValue(jsonFile, "genre");
             String releaseYearStr = extractJsonValue(jsonFile, "releaseYear");
-
-            if (title == null || genre == null || releaseYearStr == null){
-                return null;
+            int releaseYear = 0;
+            if (releaseYearStr != null && !releaseYearStr.isEmpty()) {
+                releaseYear = Integer.parseInt(releaseYearStr);
             }
-
-            int releaseYear = Integer.parseInt(releaseYearStr);
 
             return new Movie(title,genre,releaseYear);
         } catch (Exception e){
