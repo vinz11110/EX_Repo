@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class MovieController implements HttpHandler {
-    private final String BASE = "/api/movies";
+    private final String BASE = "/api/movies/";
     private List<Movie> movies = Movie.generateDummyMovies();
 
     @Override
@@ -24,11 +24,10 @@ public class MovieController implements HttpHandler {
         //routing logic
         switch (path) {
             case BASE -> handleBaseRequest(method, exchange);
-            case BASE + "/" -> handleBaseRequest(method, exchange);
-            case BASE + "/delete" -> handleDeleteRequest(method, exchange);
-            case BASE + "/add" -> handlePostRequest(method, exchange);
-            case BASE + "/getAll" -> handleGetAllRequest(method, exchange);
-            case BASE + "/update" -> handleUpdateRequest(method, exchange);
+            case BASE + "delete" -> handleDeleteRequest(method, exchange);
+            case BASE + "add" -> handlePostRequest(method, exchange);
+            case BASE + "getAll" -> handleGetAllRequest(method, exchange);
+            case BASE + "update" -> handleUpdateRequest(method, exchange);
 
             default -> {
                 //if endpoint doesn't exist, return error
