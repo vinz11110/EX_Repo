@@ -31,6 +31,23 @@ public class MovieController implements HttpHandler {
             }
         }
     }
+    private void handleGetAllRequest(String method, HttpExchange exchange) throws IOException {
+        switch (method) {
+            case "GET" -> {
+                ArrayList<String> movieArray = new ArrayList<>();
+                for (Movie movies : movieList) {
+                    movieArray.add("{\"id\": \"" + movies.getId() + "\", \"title\": \"" + movies.getTitle() + "\", \"genre\": \"" + movies.getGenre() + "\", \"releaseYear\": " + movies.getReleaseYear() + "}");
+                }
+                String response = "[" + String.join(",", movieArray) + "]";
+                ApiUtils.sendResponse(exchange, 200, response);
+            }
+            default -> {
+                String response = "{ \"error\": \"Method not allowed\" }";
+                ApiUtils.sendResponse(exchange, 405, response);
+            }
+        }
+    }
+
     private void handlePostRequest(String method, HttpExchange exchange) throws IOException{
         switch(method){
             case "POST" -> {
@@ -133,6 +150,55 @@ public class MovieController implements HttpHandler {
             }
         }
     }
+    private void handleUpdateRequest(String method, HttpExchange exchange) throws IOException {
+        InputStream inputStream = exchange.getRequestBody();
+        String requestBody = new String(inputStream.readAllBytes());
+
+        int idStart = requestBody.indexOf("\"id\":\"") + 6;
+        int idEnd = requestBody.indexOf("\"", idStart);
+        String id = requestBody.substring(idStart, idEnd);
+
+        int titleStart = requestBody.indexOf("\"title\":\"") + 9;
+        int titleEnd = requestBody.indexOf("\"", titleStart);
+        String title = requestBody.substring(titleStart, titleEnd);
+
+        int genreStart = requestBody.indexOf("\"genre\":\"") + 9;
+        int genreEnd = requestBody.indexOf("\"", genreStart);
+        String genre = requestBody.substring(genreStart, genreEnd);
+
+        int releaseYearStart = requestBody.indexOf("\"releaseYear\":\"") + 15;
+        int releaseYearEnd = requestBody.indexOf("\"", releaseYearStart);
+        String releaseYear = requestBody.substring(releaseYearStart, releaseYearEnd);
+
+        switch (method) {
+            case "PUT" -> {
+                if (!requestBody.contains("\"id\":\"") || !requestBody.contains("\"genre\":\"") || !requestBody.contains("\"title\":\"") || !requestBody.contains("\"releaseYear\":\"") ||
+                        id.isEmpty() || title.isEmpty() || genre.isEmpty() || releaseYear.isEmpty()) {
+                    String response = "{ \"error\": \"Invalid movie data\" }";
+                    ApiUtils.sendResponse(exchange, 400, response);
+                } else {
+                    for (Movie movies : movieList) {
+                        if (movies.getId.equals(id)) {
+                            movies.setTitle(title);
+                            movies.setGenre(genre);
+                            movies.setReleaseYear(releaseYear);
+
+                            String response = "{ \"message\": \"Movie updated successfully\" }";
+                            ApiUtils.sendResponse(exchange, 200, response);
+                            return;
+                        }
+                    }
+                    String response = "{ \"error\": \"Movie not found\" }";
+                    ApiUtils.sendResponse(exchange, 404, response);
+                }
+            }
+            default -> {
+                String response = "{ \"error\": \"Method not allowed\" }";
+                ApiUtils.sendResponse(exchange, 405, response);
+            }
+        }
+    }
+
     private Movie parseMovie(String jsonFile){
         try {
             String title = extractJsonValue(jsonFile, "title");
