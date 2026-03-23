@@ -58,8 +58,8 @@ public class Movie {
         List<Movie> movies = new ArrayList<>();
         Random random = new Random();
 
-        String[] titles = {"Placeholder1"};
-        String[] genres = {"Action", "Comedy","Sci-fi", "Drama", "Horror", "Romance", "Thriller", };
+        String[] titles = {"Inception","The Dark knight","A Beautiful Mind","The Machinist","Parasite","The Lord of the Rings"};
+        String[] genres = {"Action", "Comedy","Sci-Fi", "Drama", "Horror", "Romance", "Thriller", };
 
         for (int i = 0; i < 20; i++){
             String title = titles[random.nextInt(titles.length)];
