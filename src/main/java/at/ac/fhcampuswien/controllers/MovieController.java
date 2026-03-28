@@ -160,29 +160,12 @@ public class MovieController implements HttpHandler {
     private void handleUpdateRequest(String method, HttpExchange exchange) throws IOException {
         InputStream inputStream = exchange.getRequestBody();
         String requestBody = new String(inputStream.readAllBytes());
-//
-//        int idStart = requestBody.indexOf("\"id\":\"") + 6;
-//        int idEnd = requestBody.indexOf("\"", idStart);
         String id = extractJsonValue(requestBody, "id");
-//        requestBody.substring(idStart, idEnd);
-//
-//        int titleStart = requestBody.indexOf("\"title\":\"") + 9;
-//        int titleEnd = requestBody.indexOf("\"", titleStart);
         String title = extractJsonValue(requestBody, "title");
-//        requestBody.substring(titleStart, titleEnd);
-//
-//        int genreStart = requestBody.indexOf("\"genre\":\"") + 9;
-//        int genreEnd = requestBody.indexOf("\"", genreStart);
         String genre = extractJsonValue(requestBody, "genre");
-//        requestBody.substring(genreStart, genreEnd);
-//
-//        int releaseYearStart = requestBody.indexOf("\"releaseYear\":\"") + 15;
-//        int releaseYearEnd = requestBody.indexOf("\"", releaseYearStart);
         String releaseYear2 = extractJsonValue(requestBody, "releaseYear");
         assert releaseYear2 != null;
         int releaseYear = Integer.parseInt(releaseYear2);
-//        = requestBody.substring(releaseYearStart, releaseYearEnd);
-
 
         switch (method) {
             case "PUT" -> {
@@ -248,20 +231,5 @@ public class MovieController implements HttpHandler {
             value = value.substring(1, value.length() - 1);
         }
         return value;
-//        String searchKey = "\"" + key + "\":";
-//        int start = json.indexOf(searchKey);
-//
-//        if (start == -1) return null;
-//
-//        int colon = json.indexOf(":", start);
-//        int endIndex = json.indexOf("\"", start);
-//
-//        if (endIndex == -1) {
-//            String numberPart=json.substring((colon+1));
-//            return numberPart.replaceAll("[^0-9]"," ");
-//        }
-//
-//        int valueEnd = json.indexOf("\"", endIndex+1);
-//        return json.substring(endIndex+1, valueEnd);
     }
 }
