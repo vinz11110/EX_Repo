@@ -2,6 +2,7 @@ package at.ac.fhcampuswien.controllers;
 
 import at.ac.fhcampuswien.ApiUtils;
 import at.ac.fhcampuswien.models.Movie;
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -16,11 +17,13 @@ import java.util.UUID;
 public class MovieController implements HttpHandler {
     private final String BASE = "/api/movies/";
     private List<Movie> movies = Movie.generateDummyMovies();
+    Gson gson = new Gson();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
+
 
         //routing logic
         switch (path) {
@@ -59,7 +62,8 @@ public class MovieController implements HttpHandler {
         switch(method){
             case "POST" -> {
                 String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                Movie movie = parseMovie(requestBody);
+                Movie movie = gson.fromJson(requestBody, Movie.class);
+//                        parseMovie(requestBody);
 
                 boolean exists = movies.stream().anyMatch(m ->
                         m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
