@@ -40,10 +40,11 @@ public class MovieController implements HttpHandler {
             }
         }
     }
+
     private void handleGetAllRequest(String method, HttpExchange exchange) throws IOException {
         switch (method) {
             case "GET" -> {
-                                List<String> movieArray = new ArrayList<String>();
+                List<String> movieArray = new ArrayList<String>();
                 for (Movie movie : movies) {
                     movieArray.add("{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}");
                 }
@@ -58,8 +59,8 @@ public class MovieController implements HttpHandler {
         }
     }
 
-    private void handlePostRequest(String method, HttpExchange exchange) throws IOException{
-        switch(method){
+    private void handlePostRequest(String method, HttpExchange exchange) throws IOException {
+        switch (method) {
             case "POST" -> {
                 String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 Movie movie = gson.fromJson(requestBody, Movie.class);
@@ -69,22 +70,20 @@ public class MovieController implements HttpHandler {
                         m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
                                 m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
                                 m.getReleaseYear() == movie.getReleaseYear());
-                if(exists) {
+                if (exists) {
                     String response = "{ \"error\": \"Movie already exists\"}";
                     ApiUtils.sendResponse(exchange, 400, response);
                     return;
-                }
-                else if(movie == null ||
+                } else if (movie == null ||
                         movie.getTitle() == null ||
                         movie.getGenre() == null ||
                         movie.getReleaseYear() < 1900 ||
-                        movie.getReleaseYear() > 2100){
+                        movie.getReleaseYear() > 2100) {
 
                     String response = "{ \"error\": \"Invalid movie Data\"}";
                     ApiUtils.sendResponse(exchange, 400, response);
                     return;
-                }
-                else{
+                } else {
                     movies.add(movie);
 
                     String response = "{ \"message:\": \"Movie added successfully\" }";
@@ -138,12 +137,11 @@ public class MovieController implements HttpHandler {
             if (removed) {
                 String response = "{ \"message\": \"Movie deleted successfully\" }";
                 ApiUtils.sendResponse(exchange, 200, response);
-            }   else {
+            } else {
                 String response = "{ \"error\": \"Movie not found\" }";
                 ApiUtils.sendResponse(exchange, 404, response);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             String response = "{ \"error\": \"Invalid movie data\" }";
             ApiUtils.sendResponse(exchange, 400, response);
         }
@@ -161,6 +159,7 @@ public class MovieController implements HttpHandler {
             }
         }
     }
+
     private void handleUpdateRequest(String method, HttpExchange exchange) throws IOException {
         InputStream inputStream = exchange.getRequestBody();
         String requestBody = new String(inputStream.readAllBytes());
@@ -174,7 +173,7 @@ public class MovieController implements HttpHandler {
         switch (method) {
             case "PUT" -> {
                 if (!requestBody.contains("\"id\": \"") || !requestBody.contains("\"genre\": \"") || !requestBody.contains("\"title\": \"") || !requestBody.contains("\"releaseYear\": ") ||
-                        Objects.requireNonNull(id).isEmpty() || Objects.requireNonNull(title).isEmpty() || Objects.requireNonNull(genre).isEmpty() || releaseYear <0) {
+                        Objects.requireNonNull(id).isEmpty() || Objects.requireNonNull(title).isEmpty() || Objects.requireNonNull(genre).isEmpty() || releaseYear < 0) {
                     String response = "{ \"error\": \"Invalid movie data\" }";
                     ApiUtils.sendResponse(exchange, 400, response);
                 } else {
@@ -200,7 +199,7 @@ public class MovieController implements HttpHandler {
         }
     }
 
-    private Movie parseMovie(String jsonFile){
+    private Movie parseMovie(String jsonFile) {
         try {
             String title = extractJsonValue(jsonFile, "title");
             String genre = extractJsonValue(jsonFile, "genre");
@@ -210,30 +209,47 @@ public class MovieController implements HttpHandler {
                 releaseYear = Integer.parseInt(releaseYearStr);
             }
 
-            return new Movie(title,genre,releaseYear);
-        } catch (Exception e){
+            return new Movie(title, genre, releaseYear);
+        } catch (Exception e) {
             return null;
         }
     }
 
     private String extractJsonValue(String json, String key) {
-        String searchKey = "\"" + key + "\":";
-        int startIndex = json.indexOf(searchKey);
-
-        if (startIndex == -1) return null;
-
-        startIndex += searchKey.length();
-        int endIndex = json.indexOf(",", startIndex);
-
-        if (endIndex == -1) {
-            endIndex = json.indexOf("}", startIndex);
-        }
-
-        String value = json.substring(startIndex, endIndex).trim();
-
-        if (value.startsWith("\"") && value.endsWith("\""))  {
-            value = value.substring(1, value.length() - 1);
+        Movie movie = gson.fromJson(json, Movie.class);
+        String value = null;
+        switch (json) {
+            case "id" -> {
+                value = String.valueOf(movie.getId());
+            }
+            case "title" -> {
+                value = movie.getTitle();
+            }
+            case "genre" -> {
+                value = movie.getGenre();
+            }
+            case "releaseYear" -> {
+                value = String.valueOf(movie.getReleaseYear());
+            }
         }
         return value;
+//        String searchKey = "\"" + key + "\":";
+//        int startIndex = json.indexOf(searchKey);
+//
+//        if (startIndex == -1) return null;
+//
+//        startIndex += searchKey.length();
+//        int endIndex = json.indexOf(",", startIndex);
+//
+//        if (endIndex == -1) {
+//            endIndex = json.indexOf("}", startIndex);
+//        }
+//
+//        String value = json.substring(startIndex, endIndex).trim();
+//
+//        if (value.startsWith("\"") && value.endsWith("\""))  {
+//            value = value.substring(1, value.length() - 1);
+//        }
+//        return value;
     }
 }
