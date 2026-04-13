@@ -199,26 +199,26 @@ public class MovieController implements HttpHandler {
         }
     }
 
-    private Movie parseMovie(String jsonFile) {
-        try {
-            String title = extractJsonValue(jsonFile, "title");
-            String genre = extractJsonValue(jsonFile, "genre");
-            String releaseYearStr = extractJsonValue(jsonFile, "releaseYear");
-            int releaseYear = 0;
-            if (releaseYearStr != null && !releaseYearStr.isEmpty()) {
-                releaseYear = Integer.parseInt(releaseYearStr);
-            }
-
-            return new Movie(title, genre, releaseYear);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+//    private Movie parseMovie(String jsonFile) {
+//        try {
+//            String title = extractJsonValue(jsonFile, "title");
+//            String genre = extractJsonValue(jsonFile, "genre");
+//            String releaseYearStr = extractJsonValue(jsonFile, "releaseYear");
+//            int releaseYear = 0;
+//            if (releaseYearStr != null && !releaseYearStr.isEmpty()) {
+//                releaseYear = Integer.parseInt(releaseYearStr);
+//            }
+//
+//            return new Movie(title, genre, releaseYear);
+//        } catch (Exception e) {
+//            return null;
+//        }
+//    }
 
     private String extractJsonValue(String json, String key) {
         Movie movie = gson.fromJson(json, Movie.class);
         String value = null;
-        switch (json) {
+        switch (key) {
             case "id" -> {
                 value = String.valueOf(movie.getId());
             }
