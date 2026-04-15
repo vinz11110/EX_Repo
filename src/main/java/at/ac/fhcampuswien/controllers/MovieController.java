@@ -9,10 +9,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class MovieController implements HttpHandler {
     private final String BASE = "/api/movies/";
@@ -197,6 +194,49 @@ public class MovieController implements HttpHandler {
                 ApiUtils.sendResponse(exchange, 405, response);
             }
         }
+    }
+    private void handleSearchQueryRequest(String method, HttpExchange exchange) throws IOException {
+
+        if (!method.equals("GET")) {
+            String response = "{ \"error\": \"Method not allowed\" }";
+            ApiUtils.sendResponse(exchange, 405, response);
+            return;
+        }
+
+        // Get query string from URL
+        String query = exchange.getRequestURI().getQuery();
+
+        // Parse into Map
+        Map<String, String> params = ApiUtils.parseQueryParams(query);
+
+        String title = params.get("title");
+        String genre = params.get("genre");
+        String yearStr = params.get("releaseYear");
+
+        final int releaseYear = Integer.parseInt(yearStr);
+
+        // 🔍 Filter movies
+        List<Movie> results = movies.stream()
+                .filter(m ->
+                        (title == null || m.getTitle().toLowerCase().contains(title.toLowerCase())) &&
+                                (genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase())) &&
+                                (releaseYear == null || m.getReleaseYear() == releaseYear)
+                )
+                .toList();
+
+        // Convert to JSON
+        List<String> jsonMovies = new ArrayList<>();
+        for (Movie movie : results) {
+            jsonMovies.add(
+                    "{\"id\": \"" + movie.getId() +
+                            "\", \"title\": \"" + movie.getTitle() +
+                            "\", \"genre\": \"" + movie.getGenre() +
+                            "\", \"releaseYear\": " + movie.getReleaseYear() + "}"
+            );
+        }
+
+        String response = "[" + String.join(",", jsonMovies) + "]";
+        ApiUtils.sendResponse(exchange, 200, response);
     }
 
 //    private Movie parseMovie(String jsonFile) {
