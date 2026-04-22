@@ -5,6 +5,7 @@ import at.ac.fhcampuswien.models.Movie;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import services.MovieService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +16,7 @@ public class MovieController implements HttpHandler {
     private final String BASE = "/api/movies/";
     private List<Movie> movies = Movie.generateDummyMovies();
     Gson gson = new Gson();
+    MovieService movieService = new MovieService(movies);
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -170,21 +172,16 @@ public class MovieController implements HttpHandler {
         switch (method) {
             case "PUT" -> {
                 if (!requestBody.contains("\"id\": \"") || !requestBody.contains("\"genre\": \"") || !requestBody.contains("\"title\": \"") || !requestBody.contains("\"releaseYear\": ") ||
-                        Objects.requireNonNull(id).isEmpty() || Objects.requireNonNull(title).isEmpty() || Objects.requireNonNull(genre).isEmpty() || releaseYear < 0) {
+                        Objects.requireNonNull(id).isEmpty() || Objects.requireNonNull(title).isEmpty() || Objects.requireNonNull(genre).isEmpty() || releaseYear <= 0) {
                     String response = "{ \"error\": \"Invalid movie data\" }";
                     ApiUtils.sendResponse(exchange, 400, response);
                 } else {
-                    for (Movie movies : movies) {
-                        if (movies.getId().equals(UUID.fromString(id))) {
-                            movies.setTitle(title);
-                            movies.setGenre(genre);
-                            movies.setReleaseYear(releaseYear);
-
+                    Movie movie = new Movie(title,genre,releaseYear);
+                        if (movieService.updateMovie(UUID.fromString(id), movie)) {
                             String response = "{ \"message\": \"Movie updated successfully\" }";
                             ApiUtils.sendResponse(exchange, 200, response);
                             return;
                         }
-                    }
                     String response = "{ \"error\": \"Movie not found\" }";
                     ApiUtils.sendResponse(exchange, 404, response);
                 }
@@ -213,14 +210,14 @@ public class MovieController implements HttpHandler {
         String genre = params.get("genre");
         String yearStr = params.get("releaseYear");
 
-        final int releaseYear = Integer.parseInt(yearStr);
+        final Integer releaseYear = Integer.parseInt(yearStr);
 
         // 🔍 Filter movies
         List<Movie> results = movies.stream()
                 .filter(m ->
                         (title == null || m.getTitle().toLowerCase().contains(title.toLowerCase())) &&
                                 (genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase())) &&
-                                (releaseYear == null || m.getReleaseYear() == releaseYear)
+                                (releaseYear == null  || m.getReleaseYear() == releaseYear)
                 )
                 .toList();
 

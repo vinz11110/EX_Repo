@@ -1,4 +1,4 @@
-package at.ac.fhcampuswien.services;
+package services;
 
 import at.ac.fhcampuswien.models.Movie;
 import java.util.List;
