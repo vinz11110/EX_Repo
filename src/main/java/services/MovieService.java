@@ -18,9 +18,10 @@ public class MovieService {
     }
 
     public String getAllMovies() {
-        return movies.stream()
-                .map(movie -> "{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}")
-                .collect(Collectors.joining(",", "[", "]"));
+//        return movies.stream()
+//                .map(movie -> "{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}")
+//                .collect(Collectors.joining(",", "[", "]"));
+        return searchMovies(null, null, null);
     }
 
     public void addMovie(Movie movie) {
