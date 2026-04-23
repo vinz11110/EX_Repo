@@ -187,8 +187,6 @@ public class MovieController implements HttpHandler {
         String title = params.get("title");
         String genre = params.get("genre");
         String yearStr = params.get("releaseYear");
-
-        final Integer releaseYear = Integer.parseInt(yearStr);
         String response = movieService.searchMovies(title,genre, yearStr);
         ApiUtils.sendResponse(exchange, 200, response);
     }
