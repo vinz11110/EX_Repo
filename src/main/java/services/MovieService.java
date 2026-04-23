@@ -1,6 +1,8 @@
 package services;
 
 import at.ac.fhcampuswien.models.Movie;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,8 +15,10 @@ public class MovieService {
         this.movies = movies;
     }
 
-    public List<Movie> getAllMovies() {
-        return movies;
+    public String getAllMovies() {
+        return movies.stream()
+                .map(movie -> "{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}")
+                .collect(Collectors.joining(",", "[", "]"));
     }
 
     public boolean addMovie(Movie movie) {

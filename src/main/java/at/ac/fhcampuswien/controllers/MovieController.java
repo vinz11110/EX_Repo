@@ -31,6 +31,7 @@ public class MovieController implements HttpHandler {
             case BASE + "add" -> handlePostRequest(method, exchange);
             case BASE + "getAll" -> handleGetAllRequest(method, exchange);
             case BASE + "update" -> handleUpdateRequest(method, exchange);
+            case BASE + "search" -> handleSearchQueryRequest(method, exchange);
 
             default -> {
                 //if endpoint doesn't exist, return error
@@ -43,12 +44,8 @@ public class MovieController implements HttpHandler {
     private void handleGetAllRequest(String method, HttpExchange exchange) throws IOException {
         switch (method) {
             case "GET" -> {
-                List<String> movieArray = new ArrayList<String>();
-                for (Movie movie : movies) {
-                    movieArray.add("{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}");
-                }
-                String response = "[" + String.join(",", movieArray) + "]";
-                ApiUtils.sendResponse(exchange, 200, response);
+               String response = movieService.getAllMovies();
+               ApiUtils.sendResponse(exchange, 200, response);
 
             }
             default -> {
