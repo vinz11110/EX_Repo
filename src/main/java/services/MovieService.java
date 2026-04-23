@@ -1,15 +1,17 @@
 package services;
 
 import at.ac.fhcampuswien.models.Movie;
+import com.google.gson.Gson;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 
 public class MovieService {
     private final List<Movie> movies;
+    Gson gson = new Gson();
 
     public MovieService(List<Movie> movies) {
         this.movies = movies;
@@ -21,29 +23,34 @@ public class MovieService {
                 .collect(Collectors.joining(",", "[", "]"));
     }
 
-    public boolean addMovie(Movie movie) {
-        if (movie == null || movie.getTitle() == null || movie.getGenre() == null || movie.getReleaseYear() < 1900 || movie.getReleaseYear() > 2100) {
-            throw new IllegalArgumentException("Invalid movie Data");
-        }
-
+    public void addMovie(Movie movie) {
         boolean exists = movies.stream().anyMatch(m ->
                 m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
-                m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
-                m.getReleaseYear() == movie.getReleaseYear());
+                        m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
+                        m.getReleaseYear() == movie.getReleaseYear());
+        if (movie == null ||
+                movie.getTitle() == null ||
+                movie.getGenre() == null ||
+                movie.getReleaseYear() < 1900 ||
+                movie.getReleaseYear() > 2100) {
 
-        if (exists) {
-            return false;
+            throw new IllegalArgumentException();
+        }else if (exists) {
+            throw new IllegalStateException();
         }
 
         movies.add(movie);
-        return true;
     }
 
-    public boolean deleteMovie(String title, String genre, int releaseYear) {
-        return movies.removeIf(m ->
+    public void deleteMovie(String title, String genre, int releaseYear) {
+        if(movies.removeIf(m ->
                 m.getTitle().equals(title) &&
-                m.getGenre().equals(genre) &&
-                m.getReleaseYear() == releaseYear);
+                        m.getGenre().equals(genre) &&
+                        m.getReleaseYear() == releaseYear)){
+            return;
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
     public boolean updateMovie(UUID id, Movie updateData) {
@@ -58,12 +65,13 @@ public class MovieService {
                 }).orElse(false);
     }
 
-    public List<Movie> searchMovies(String title, String genre, String releaseYear) {
-        return movies.stream()
+    public String searchMovies(String title, String genre, String releaseYear) {
+         return movies.stream()
                 .filter(m -> title == null || m.getTitle().toLowerCase().contains(title.toLowerCase()))
                 .filter(m -> genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase()))
                 .filter(m -> releaseYear == null || String.valueOf(m.getReleaseYear()).equals(releaseYear))
-                .collect(Collectors.toList());
+                .map(movie -> "{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}")
+                .collect(Collectors.joining(",", "[", "]"));
     }
 }
 

@@ -60,34 +60,18 @@ public class MovieController implements HttpHandler {
             case "POST" -> {
                 String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 Movie movie = gson.fromJson(requestBody, Movie.class);
-//                        parseMovie(requestBody);
+               try{
+                   movieService.addMovie(movie);
 
-                boolean exists = movies.stream().anyMatch(m ->
-                        m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
-                                m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
-                                m.getReleaseYear() == movie.getReleaseYear());
-                if (exists) {
-                    String response = "{ \"error\": \"Movie already exists\"}";
-                    ApiUtils.sendResponse(exchange, 400, response);
-                    return;
-                } else if (movie == null ||
-                        movie.getTitle() == null ||
-                        movie.getGenre() == null ||
-                        movie.getReleaseYear() < 1900 ||
-                        movie.getReleaseYear() > 2100) {
-
-                    String response = "{ \"error\": \"Invalid movie Data\"}";
-                    ApiUtils.sendResponse(exchange, 400, response);
-                    return;
-                } else {
-                    movies.add(movie);
-
-                    String response = "{ \"message:\": \"Movie added successfully\" }";
-                    ApiUtils.sendResponse(exchange, 201, response);
-                    return;
-                }
-
-
+                   String response = "{ \"message\": \"Movie added successfully\" }";
+                   ApiUtils.sendResponse(exchange, 201, response);
+               }catch (IllegalStateException e){
+                   String response = "{ \"error\": \"Movie already exists\"}";
+                   ApiUtils.sendResponse(exchange, 400, response);
+               }catch (IllegalArgumentException e){
+                   String response = "{ \"error\": \"Invalid movie Data\"}";
+                   ApiUtils.sendResponse(exchange, 400, response);
+               }
             }
             default -> {
                 String response = "{ \"error\": \"Method not allowed\" }";
@@ -124,19 +108,16 @@ public class MovieController implements HttpHandler {
             }
 
             int releaseYear = Integer.parseInt(releaseYearString);
+            try{
+                movieService.deleteMovie(title, genre, releaseYear);
 
-            boolean removed = movies.removeIf(m ->
-                    m.getTitle().equals(title) &&
-                            m.getGenre().equals(genre) &&
-                            m.getReleaseYear() == releaseYear);
-
-            if (removed) {
                 String response = "{ \"message\": \"Movie deleted successfully\" }";
                 ApiUtils.sendResponse(exchange, 200, response);
-            } else {
+            }catch(NoSuchElementException e){
                 String response = "{ \"error\": \"Movie not found\" }";
                 ApiUtils.sendResponse(exchange, 404, response);
             }
+
         } catch (Exception e) {
             String response = "{ \"error\": \"Invalid movie data\" }";
             ApiUtils.sendResponse(exchange, 400, response);
@@ -208,28 +189,7 @@ public class MovieController implements HttpHandler {
         String yearStr = params.get("releaseYear");
 
         final Integer releaseYear = Integer.parseInt(yearStr);
-
-        // 🔍 Filter movies
-        List<Movie> results = movies.stream()
-                .filter(m ->
-                        (title == null || m.getTitle().toLowerCase().contains(title.toLowerCase())) &&
-                                (genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase())) &&
-                                (releaseYear == null  || m.getReleaseYear() == releaseYear)
-                )
-                .toList();
-
-        // Convert to JSON
-        List<String> jsonMovies = new ArrayList<>();
-        for (Movie movie : results) {
-            jsonMovies.add(
-                    "{\"id\": \"" + movie.getId() +
-                            "\", \"title\": \"" + movie.getTitle() +
-                            "\", \"genre\": \"" + movie.getGenre() +
-                            "\", \"releaseYear\": " + movie.getReleaseYear() + "}"
-            );
-        }
-
-        String response = "[" + String.join(",", jsonMovies) + "]";
+        String response = movieService.searchMovies(title,genre, yearStr);
         ApiUtils.sendResponse(exchange, 200, response);
     }
 
