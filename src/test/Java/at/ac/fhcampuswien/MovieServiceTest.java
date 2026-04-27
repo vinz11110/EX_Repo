@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class MovieServiceTest {
+    private MovieService dummyMovieService;
     private MovieService movieService;
     private List<Movie> testMovies;
     private List<Movie> movies;
@@ -40,7 +41,7 @@ public class MovieServiceTest {
         movieService = new MovieService(testMovies);
 
         movies = Movie.generateDummyMovies();
-        movieService = new MovieService(movies);
+        dummyMovieService = new MovieService(movies);
     }
 
     // Tests for getAllMovies()
@@ -109,196 +110,71 @@ public class MovieServiceTest {
         assertEquals(3, testMovies.size());
     }
 
-        private HttpExchange mockExchangePost(String json) throws IOException {
-            HttpExchange exchange = mock(HttpExchange.class);
-
-            when(exchange.getRequestMethod()).thenReturn("POST");
-            when(exchange.getRequestURI()).thenReturn(java.net.URI.create("/api/movies/add"));
-            when(exchange.getRequestBody()).thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
-
-            when(exchange.getResponseHeaders()).thenReturn(new Headers());
-            OutputStream responseStream = new ByteArrayOutputStream();
-            when(exchange.getResponseBody()).thenReturn(responseStream);
-
-            return exchange;
-        }
-
-        private HttpExchange mockExchangeGetSearch(String query, ByteArrayOutputStream response) throws IOException {
-            HttpExchange exchange = mock(HttpExchange.class);
-
-            when(exchange.getRequestMethod()).thenReturn("GET");
-            when(exchange.getRequestURI())
-                    .thenReturn(java.net.URI.create("/api/movies/search?" + query));
-
-            when(exchange.getResponseHeaders()).thenReturn(new Headers());
-            when(exchange.getResponseBody()).thenReturn(response);
-
-            return exchange;
-        }
-
 
         @Test
         void shouldAddMovieSuccessfully() throws IOException {
-            MovieController controller = new MovieController();
+            Movie movie = new Movie("Inception", "Sci-Fi", 2010);
 
-            String json = """
-                {
-                "title": "Inception",
-                "genre": "Sci-Fi",
-                "releaseYear": 2010
-                }
-                """;
+            movieService.addMovie(movie);
 
-            HttpExchange exchange = mockExchangePost(json);
+            assertTrue(testMovies.stream().anyMatch(m -> m.getTitle().equals("Inception") &&
+                                                                m.getGenre().equals("Sci-Fi") &&
+                                                                m.getReleaseYear() == 2010));
 
-            controller.handle(exchange);
 
-            verify(exchange).sendResponseHeaders(eq(201), anyLong());
         }
 
         @Test
-        void shouldReturnErrorIfMovieAlreadyExists() throws IOException {
-            MovieController controller = new MovieController();
+        void shouldReturnErrorIfMovieAlreadyExists()  {
+            Movie movie = new Movie("Matrix", "Science Fiction", 1999);
 
-            String json = """
-            {
-              "title": "Duplicate",
-              "genre": "Drama",
-              "releaseYear": 2010
-            }
-            """;
-
-            HttpExchange exchange1 = mockExchangePost(json);
-            HttpExchange exchange2 = mockExchangePost(json);
-
-            controller.handle(exchange1); // first add
-            controller.handle(exchange2); // duplicate
-
-            verify(exchange2).sendResponseHeaders(eq(400), anyLong());
+            assertThrows(IllegalStateException.class, () -> { movieService.addMovie(movie);});
+            assertEquals(3, testMovies.size());
         }
 
         @Test
-        void shouldReturnInvalidMovieDataIfYearTooLow() throws IOException {
-            MovieController controller = new MovieController();
+        void shouldReturnInvalidMovieDataIfYearTooLow() {
+            Movie movie = new Movie("Bad Movie", "Horror", 1800);
 
-            String json = """
-            {
-              "title": "Bad Movie",
-              "genre": "Horror",
-              "releaseYear": 1800
-            }
-            """;
-
-            HttpExchange exchange = mockExchangePost(json);
-
-            controller.handle(exchange);
-
-            verify(exchange).sendResponseHeaders(eq(400), anyLong());
+            assertThrows(IllegalArgumentException.class, () -> {movieService.addMovie(movie);});
+            assertEquals(3, testMovies.size());
         }
 
         @Test
-        void  shouldReturnInvalidMovieDataIfTitleMissing() throws IOException {
-            MovieController controller = new MovieController();
+        void  shouldReturnInvalidMovieDataIfTitleMissing() {
+            Movie movie = new Movie(null, "Action", 2000);
 
-            String json = """
-            {
-              "genre": "Action",
-              "releaseYear": 2000
-            }
-            """;
-
-            HttpExchange exchange = mockExchangePost(json);
-
-            controller.handle(exchange);
-
-            verify(exchange).sendResponseHeaders(eq(400), anyLong());
+            assertThrows(IllegalArgumentException.class, () -> {movieService.addMovie(movie);});
         }
         @Test
-        void  shouldReturnInvalidMovieDataIfGenreMissing() throws IOException {
-            MovieController controller = new MovieController();
+        void  shouldReturnInvalidMovieDataIfGenreMissing() {
+            Movie movie = new Movie("Inception", null, 2000);
 
-            String json = """
-            {
-              "Title": "Inception",
-              "releaseYear": 2000
-            }
-            """;
-
-            HttpExchange exchange = mockExchangePost(json);
-
-            controller.handle(exchange);
-
-            verify(exchange).sendResponseHeaders(eq(400), anyLong());
-        }
-        @Test
-        void  shouldReturnInvalidMovieDataIfReleaseYearMissing() throws IOException {
-            MovieController controller = new MovieController();
-
-            String json = """
-            {
-              "Title": "Inception",
-              "genre": "Action"
-            }
-            """;
-
-            HttpExchange exchange = mockExchangePost(json);
-
-            controller.handle(exchange);
-
-            verify(exchange).sendResponseHeaders(eq(400), anyLong());
-        }
-
-
-
-
-
-
-
-        @Test
-        void shouldFilterByTitle() throws IOException {
-            MovieController controller = new MovieController();
-
-            ByteArrayOutputStream response = new ByteArrayOutputStream();
-
-            HttpExchange exchange = mockExchangeGetSearch("title=dark", response);
-
-            controller.handle(exchange);
-
-            verify(exchange).sendResponseHeaders(eq(200), anyLong());
-
-            String result = response.toString().toLowerCase();
-            assertTrue(result.contains("dark"));
-        }
-        @Test
-        void shouldFilterByGenre() throws IOException {
-            MovieController controller = new MovieController();
-
-            ByteArrayOutputStream response = new ByteArrayOutputStream();
-
-            HttpExchange exchange = mockExchangeGetSearch("genre=action", response);
-
-            controller.handle(exchange);
-
-            verify(exchange).sendResponseHeaders(eq(200), anyLong());
-
-            String result = response.toString().toLowerCase();
-            assertTrue(result.contains("action"));
+            assertThrows(IllegalArgumentException.class, () -> {movieService.addMovie(movie);});
         }
 
         @Test
-        void shouldFilterByReleaseYear() throws IOException {
-            MovieController controller = new MovieController();
+        void shouldFilterByTitle()  {
+        String result = movieService.searchMovies("matrix", null, null);
 
-            ByteArrayOutputStream response = new ByteArrayOutputStream();
+        assertTrue(result.toLowerCase().contains("matrix"));
+        assertFalse(result.toLowerCase().contains("machinist"));
 
-            HttpExchange exchange = mockExchangeGetSearch("releaseYear=2000", response);
+        }
+        @Test
+        void shouldFilterByGenre()  {
+            String result = movieService.searchMovies(null, "Thriller", null);
 
-            controller.handle(exchange);
+            assertTrue(result.toLowerCase().contains("thriller"));
+            assertFalse(result.toLowerCase().contains("science fiction"));
 
-            verify(exchange).sendResponseHeaders(eq(200), anyLong());
+        }
 
-            String result = response.toString().toLowerCase();
-            assertTrue(result.contains("2000"));
+        @Test
+        void shouldFilterByReleaseYear() {
+            String result = movieService.searchMovies(null, null, "1999");
+            assertTrue(result.contains("1999"));
+            assertFalse(result.contains("2007"));
         }
 
 
@@ -311,37 +187,37 @@ public class MovieServiceTest {
     }
     @Test
     void update_inputID_valid_correct_returns_true() {
-        assertEquals(true, movieService.updateMovie(movies.get(3).getId(), movies.get(3)));
+        assertEquals(true, dummyMovieService.updateMovie(movies.get(3).getId(), movies.get(3)));
     }
     @Test
     void update_inputID_valid_incorrect_returns_false() {
-        assertEquals(false, movieService.updateMovie(UUID.randomUUID(), movies.get(3)));
+        assertEquals(false, dummyMovieService.updateMovie(UUID.randomUUID(), movies.get(3)));
     }
     @Test
     void update_inputID_correct_updating_title_returns_true() {
         Movie movie = new Movie("KINGKONG",movies.get(1).getGenre(),movies.get(1).getReleaseYear());
-        movieService.updateMovie(movies.get(1).getId(), movie);
+        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
         assertEquals(movies.get(1).getTitle(), "KINGKONG");
     }
 
     @Test
     void update_inputID_correct_updating_genre_returns_true() {
         Movie movie = new Movie(movies.get(1).getTitle(),"HORROR",movies.get(1).getReleaseYear());
-        movieService.updateMovie(movies.get(1).getId(), movie);
+        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
         assertEquals(movies.get(1).getGenre(), "HORROR");
     }
 
     @Test
     void update_inputID_correct_updating_releaseYear_returns_true() {
         Movie movie = new Movie(movies.get(1).getTitle(),movies.get(1).getGenre(),2023);
-        movieService.updateMovie(movies.get(1).getId(), movie);
+        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
         assertEquals(movies.get(1).getReleaseYear(), 2023);
     }
 
     @Test
     void update_inputID_correct_updating_all_returns_true() {
         Movie movie = new Movie("KINGKONG","HORROR",2023);
-        movieService.updateMovie(movies.get(1).getId(), movie);
+        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
         assertEquals(movies.get(1).getTitle(), "KINGKONG");
         assertEquals(movies.get(1).getGenre(), "HORROR");
         assertEquals(movies.get(1).getReleaseYear(), 2023);
