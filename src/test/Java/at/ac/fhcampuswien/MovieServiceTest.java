@@ -174,6 +174,7 @@ public class MovieServiceTest {
         void shouldFilterByReleaseYear() {
             String result = movieService.searchMovies(null, null, "1999");
 
+
             assertTrue(result.contains("1999"));
             assertFalse(result.contains("2007"));
         }
