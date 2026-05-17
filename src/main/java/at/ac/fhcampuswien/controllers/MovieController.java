@@ -87,6 +87,9 @@ public class MovieController implements HttpHandler {
             } catch (JsonSyntaxException e) {
                 String response = "{ \"error\": \"Malformed Json Syntax\" }";
                 ApiUtils.sendResponse(exchange, 400, response);
+            }catch (NullPointerException e) {
+                String response = "{ \"error\": \"Movie Data Missing from request\" }";
+                ApiUtils.sendResponse(exchange, 400, response);
             }catch(Exception e){
                 String response = "{ \"error\": \"An Unexpected Error occurred\" }";
                 ApiUtils.sendResponse(exchange, 500, response);
@@ -121,30 +124,31 @@ public class MovieController implements HttpHandler {
             String genre = movie.getGenre();
             int releaseYear = movie.getReleaseYear();
 
-            if (title == null || genre == null || releaseYear<1900) {
+            if (title == null || genre == null || releaseYear < 1900) {
                 String response = "{ \"error\": \"Invalid movie data\" }";
                 ApiUtils.sendResponse(exchange, 400, response);
                 return;
             }
-            try{
-                movieService.deleteMovie(title, genre, releaseYear);
 
-                String response = "{ \"message\": \"Movie deleted successfully\" }";
-                ApiUtils.sendResponse(exchange, 200, response);
-            }catch(MovieNotFoundException e){
-                String response = "{ \"error\": \"Movie not found\" }";
-                ApiUtils.sendResponse(exchange, 404, response);
-            }catch(DatabaseException e){
-                String response = "{ \"error\": \"Internal Server Error\" }";
-                ApiUtils.sendResponse(exchange, 500, response);
-            }catch(Exception e){
-                String response = "{ \"error\": \"An Unexpected Error occurred\" }";
-                ApiUtils.sendResponse(exchange, 500, response);
-            }
+            movieService.deleteMovie(title, genre, releaseYear);
 
+            String response = "{ \"message\": \"Movie deleted successfully\" }";
+            ApiUtils.sendResponse(exchange, 200, response);
+        }catch(MovieNotFoundException e){
+            String response = "{ \"error\": \"Movie not found\" }";
+            ApiUtils.sendResponse(exchange, 404, response);
+        }catch(DatabaseException e){
+            String response = "{ \"error\": \"Internal Server Error\" }";
+            ApiUtils.sendResponse(exchange, 500, response);
         } catch (JsonSyntaxException e) {
             String response = "{ \"error\": \"Malformed Json Syntax\" }";
             ApiUtils.sendResponse(exchange, 400, response);
+        }catch (NullPointerException e) {
+            String response = "{ \"error\": \"Movie Data Missing from request\" }";
+            ApiUtils.sendResponse(exchange, 400, response);
+        }catch(Exception e){
+            String response = "{ \"error\": \"An Unexpected Error occurred\" }";
+            ApiUtils.sendResponse(exchange, 500, response);
         }
     }
 
@@ -177,27 +181,27 @@ public class MovieController implements HttpHandler {
                          String response = "{ \"error\": \"Invalid movie data\" }";
                          ApiUtils.sendResponse(exchange, 400, response);
                      } else {
-                         try {
-                             Movie movieObj = new Movie(title, genre, releaseYear);
-                             movieService.updateMovie(UUID.fromString(id), movieObj);
+                         Movie movieObj = new Movie(title, genre, releaseYear);
+                         movieService.updateMovie(UUID.fromString(id), movieObj);
 
-                             String response = "{ \"message\": \"Movie updated successfully\" }";
-                             ApiUtils.sendResponse(exchange, 200, response);
-                         } catch (MovieNotFoundException e) {
-                             String response = "{ \"error\": \"Movie not found\" }";
-                             ApiUtils.sendResponse(exchange, 404, response);
-                         } catch (DatabaseException e) {
-                             String response = "{ \"error\": \"Internal Server Error\" }";
-                             ApiUtils.sendResponse(exchange, 500, response);
-                         }catch(Exception e){
-                             String response = "{ \"error\": \"An Unexpected Error occurred\" }";
-                             ApiUtils.sendResponse(exchange, 500, response);
-                         }
-
+                         String response = "{ \"message\": \"Movie updated successfully\" }";
+                         ApiUtils.sendResponse(exchange, 200, response);
                      }
-                 }catch (JsonSyntaxException e) {
+                 } catch (MovieNotFoundException e) {
+                     String response = "{ \"error\": \"Movie not found\" }";
+                     ApiUtils.sendResponse(exchange, 404, response);
+                 } catch (DatabaseException e) {
+                     String response = "{ \"error\": \"Internal Server Error\" }";
+                     ApiUtils.sendResponse(exchange, 500, response);
+                 } catch (JsonSyntaxException e) {
                      String response = "{ \"error\": \"Malformed Json Syntax\" }";
                      ApiUtils.sendResponse(exchange, 400, response);
+                 }catch (NullPointerException e) {
+                     String response = "{ \"error\": \"Movie Data Missing from request\" }";
+                     ApiUtils.sendResponse(exchange, 400, response);
+                 }catch(Exception e){
+                     String response = "{ \"error\": \"An Unexpected Error occurred\" }";
+                     ApiUtils.sendResponse(exchange, 500, response);
                  }
             }
             default -> {
@@ -228,6 +232,9 @@ public class MovieController implements HttpHandler {
         }catch(DatabaseException e){
             String response = "{ \"error\": \"Internal Server Error\" }";
             ApiUtils.sendResponse(exchange, 500, response);
+        }catch (NullPointerException e) {
+            String response = "{ \"error\": \"Movie Data Missing from request\" }";
+            ApiUtils.sendResponse(exchange, 400, response);
         }catch(Exception e){
             String response = "{ \"error\": \"An Unexpected Error occurred\" }";
             ApiUtils.sendResponse(exchange, 500, response);
