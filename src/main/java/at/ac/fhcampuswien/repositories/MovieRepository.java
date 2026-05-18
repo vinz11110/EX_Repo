@@ -29,6 +29,7 @@ public class MovieRepository implements IMovieRepository {
         }
         catch (SQLException e){
             e.printStackTrace();
+            throw new DatabaseException("Error in Databank");
         }
     }
 
@@ -53,6 +54,7 @@ public class MovieRepository implements IMovieRepository {
         }
         catch (SQLException e){
             e.printStackTrace();
+            throw new DatabaseException("Error in Databank");
         }
         return movies;
     }
@@ -64,12 +66,16 @@ public class MovieRepository implements IMovieRepository {
                 statement.setObject(1, movie.getId());
 
                 int rowsUpdated = statement.executeUpdate();
-                return rowsUpdated > 0;
+                if(rowsUpdated == 0){
+                    throw new MovieNotFoundException("Movie not found for deletion");
+                }else{
+                    return true;
+                }
             }
         }
         catch (SQLException e){
             e.printStackTrace();
-            return false;
+            throw new DatabaseException("Error in Databank");
         }
     }
     public boolean update(Movie movie){
@@ -81,13 +87,16 @@ public class MovieRepository implements IMovieRepository {
                 statement.setInt(3, movie.getReleaseYear());
                 statement.setObject(4, movie.getId());
 
-                statement.executeUpdate();
+                if(statement.executeUpdate()==0){
+                    throw new MovieNotFoundException("No Movie found to update");
+                }else{
                 return true;
+                }
             }
         }
         catch (SQLException e){
             e.printStackTrace();
-            return false;
+            throw new DatabaseException("Error in Databank");
         }
     }
 }

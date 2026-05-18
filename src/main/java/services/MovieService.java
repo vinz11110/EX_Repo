@@ -20,9 +20,7 @@ public class MovieService {
     }
 
     public String getAllMovies() {
-        return repository.findAll().stream()
-                .map(movie -> "{\"id\": \"" + movie.getId() + "\", \"title\": \"" + movie.getTitle() + "\", \"genre\": \"" + movie.getGenre() + "\", \"releaseYear\": " + movie.getReleaseYear() + "}")
-                .collect(Collectors.joining(",", "[", "]"));
+        return gson.toJson(repository.findAll());
     }
 
     public void addMovie(Movie movie) {
@@ -50,9 +48,6 @@ public class MovieService {
                 ).findFirst().orElseThrow(NoSuchElementException::new);
 
         boolean deleted = repository.delete(movie);
-        if(!deleted) {
-            throw new NoSuchElementException();
-        }
     }
 
     public boolean updateMovie(UUID id, Movie updateData) {

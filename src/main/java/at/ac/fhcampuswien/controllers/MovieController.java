@@ -88,9 +88,6 @@ public class MovieController implements HttpHandler {
             } catch (JsonSyntaxException e) {
                 String response = "{ \"error\": \"Malformed Json Syntax\" }";
                 ApiUtils.sendResponse(exchange, 400, response);
-            }catch (NullPointerException e) {
-                String response = "{ \"error\": \"Movie Data Missing from request\" }";
-                ApiUtils.sendResponse(exchange, 400, response);
             }catch(Exception e){
                 String response = "{ \"error\": \"An Unexpected Error occurred\" }";
                 ApiUtils.sendResponse(exchange, 500, response);
@@ -145,9 +142,6 @@ public class MovieController implements HttpHandler {
         } catch (JsonSyntaxException e) {
             String response = "{ \"error\": \"Malformed Json Syntax\" }";
             ApiUtils.sendResponse(exchange, 400, response);
-        }catch (NullPointerException e) {
-            String response = "{ \"error\": \"Movie Data Missing from request\" }";
-            ApiUtils.sendResponse(exchange, 400, response);
         }catch(Exception e){
             String response = "{ \"error\": \"An Unexpected Error occurred\" }";
             ApiUtils.sendResponse(exchange, 500, response);
@@ -178,8 +172,7 @@ public class MovieController implements HttpHandler {
                      String title = movie.getTitle();
                      String genre = movie.getGenre();
                      int releaseYear = movie.getReleaseYear();
-                     if (!requestBody.contains("\"id\": \"") || !requestBody.contains("\"genre\": \"") || !requestBody.contains("\"title\": \"") || !requestBody.contains("\"releaseYear\": ") ||
-                             Objects.requireNonNull(id).isEmpty() || Objects.requireNonNull(title).isEmpty() || Objects.requireNonNull(genre).isEmpty() || releaseYear <= 0) {
+                     if (movie == null || movie.getId() == null || movie.getTitle() == null || movie.getGenre() == null || movie.getReleaseYear() <= 0) {
                          String response = "{ \"error\": \"Invalid movie data\" }";
                          ApiUtils.sendResponse(exchange, 400, response);
                      } else {
@@ -197,9 +190,6 @@ public class MovieController implements HttpHandler {
                      ApiUtils.sendResponse(exchange, 500, response);
                  } catch (JsonSyntaxException e) {
                      String response = "{ \"error\": \"Malformed Json Syntax\" }";
-                     ApiUtils.sendResponse(exchange, 400, response);
-                 }catch (NullPointerException e) {
-                     String response = "{ \"error\": \"Movie Data Missing from request\" }";
                      ApiUtils.sendResponse(exchange, 400, response);
                  }catch(Exception e){
                      String response = "{ \"error\": \"An Unexpected Error occurred\" }";
@@ -234,8 +224,8 @@ public class MovieController implements HttpHandler {
         }catch(DatabaseException e){
             String response = "{ \"error\": \"Internal Server Error\" }";
             ApiUtils.sendResponse(exchange, 500, response);
-        }catch (NullPointerException e) {
-            String response = "{ \"error\": \"Movie Data Missing from request\" }";
+        }catch(IllegalArgumentException e){
+            String response = "{ \"error\": \"Invalid movie Data\" }";
             ApiUtils.sendResponse(exchange, 400, response);
         }catch(Exception e){
             String response = "{ \"error\": \"An Unexpected Error occurred\" }";
