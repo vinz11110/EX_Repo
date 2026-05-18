@@ -1,0 +1,164 @@
+package at.ac.fhcampuswien;
+
+import at.ac.fhcampuswien.controllers.MovieController;
+import at.ac.fhcampuswien.models.Movie;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import services.MovieRepository;
+import services.MovieService;
+import at.ac.fhcampuswien.exceptions.DataBaseException;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+
+import javax.xml.crypto.Data;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith((MockitoExtension.class))
+public class MovieServiceTest {
+    private MovieService movieService;
+
+    @Mock
+    private MovieRepository movieRepository;
+
+    private List<Movie> testMovies;
+
+    @BeforeEach
+    void setUp() throws DataBaseException {
+        testMovies = new ArrayList<>(Arrays.asList(
+                new Movie("The Machinist", "Thriller", 2005),
+                new Movie("Matrix", "Science-Fiction", 1999),
+                new Movie("No Country for Old Men", "Thriller", 2007)
+        ));
+
+        movieService = new MovieService(movieRepository);
+    }
+
+    @Test
+    void should_throw_database_exception_when_deleting_movie_with_db_error() throws DataBaseException, MovieNotFoundException {
+        doThrow(new DataBaseException("Database connection error")).when(movieRepository).delete(any(Movie.class));
+
+        assertThrows(DataBaseException.class, () -> {
+            movieService.deleteMovie("Inception", "Sci-Fi", 2010);
+        });
+    }
+
+    @Test
+    void should_throw_movie_not_found_exception_when_updating_non_existent_movie() throws DataBaseException, MovieNotFoundException {
+        Movie updateData = new Movie("Unkown", "Drama", 2000);
+
+        doThrow(new MovieNotFoundException("Movie does not exist in database")).when(movieRepository).update(any(Movie.class));
+
+        assertThrows(MovieNotFoundException.class, () -> {
+            movieService.updateMovie(updateData.getId(), updateData);
+        });
+    }
+
+    @Test
+    void givenMovieList_whenGetAllMovies_thenReturnsJsonArray() throws DataBaseException {
+        when(movieRepository.findAll()).thenReturn(testMovies);
+
+        String jsonResult = movieService.getAllMovies();
+        assertTrue(jsonResult.startsWith("["));
+        assertTrue(jsonResult.endsWith("]"));
+        assertTrue(jsonResult.contains("Matrix"));
+        assertTrue(jsonResult.contains("No Country for Old Men"));
+        assertTrue(jsonResult.contains("The Machinist"));
+    }
+
+    @Test
+    void givenEmptyMovieList_whenGetAllMovies_thenReturnsEmptyJsonArray() throws DataBaseException {
+        when(movieRepository.findAll()).thenReturn(new ArrayList<>());
+        String jsonResult = movieService.getAllMovies();
+        assertEquals("[]", jsonResult);
+    }
+
+    @Test
+    void shouldFilterByTitle() throws DataBaseException {
+        when(movieRepository.findAll()).thenReturn(testMovies);
+
+        String result = movieService.searchMovies("matrix", null, null);
+
+        assertTrue(result.toLowerCase().contains("matrix"));
+        assertFalse(result.toLowerCase().contains("machinist"));
+    }
+
+    @Test
+    void shouldFilterByGenre() throws DataBaseException {
+        when(movieRepository.findAll()).thenReturn(testMovies);
+
+        String result = movieService.searchMovies(null, "Thriller", null);
+
+        assertTrue(result.toLowerCase().contains("thriller"));
+        assertFalse(result.toLowerCase().contains("science-fiction"));
+    }
+
+    @Test
+    void shouldFilterByReleaseYear() throws DataBaseException {
+        when(movieRepository.findAll()).thenReturn(testMovies);
+
+        String result = movieService.searchMovies(null, null, "1999");
+
+        assertTrue(result.contains("1999"));
+        assertTrue(result.contains("2007"));
+    }
+
+    @Test
+    void givenExistingMovie_whenDeleteMovie_thenRepositoryDeleteIsCalled() throws DataBaseException, MovieNotFoundException {
+        when(movieRepository.delete(any(Movie.class))).thenReturn(true);
+
+        movieService.deleteMovie("No Country for Old Men", "Thriller", 2007);
+
+        verify(movieRepository, times(1)).delete(any(Movie.class));
+    }
+
+    @Test
+    void shouldAddMovieSuccessfully() throws IOException, DataBaseException {
+        Movie movie = new Movie("Inception", "Sci-Fi", 2010);
+
+        movieService.addMovie(movie);
+
+        verify(movieRepository, times(1)).add(movie);
+    }
+
+    @Test
+    void shouldReturnInvalidMovieDataIfYearTooLow() {
+        Movie movie = new Movie("Not working", "Horror", 1700);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            movieService.addMovie(movie);
+        });
+    }
+
+    @Test
+    void shouldReturnInvalidMovieDataIfTitleMissing() {
+        Movie movie = new Movie(null, "Action", 2000);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            movieService.addMovie(movie);
+        });
+        verifyNoInteractions(movieRepository);
+    }
+
+    @Test
+    void update_inputID_correct_return_true() throws DataBaseException, MovieNotFoundException {
+        Movie movie = testMovies.get(1);
+        when(movieRepository.update(any(Movie.class))).thenReturn(true);
+
+        boolean isUpdated = movieService.updateMovie(movie.getId(), movie);
+
+        assertTrue(isUpdated);
+        verify(movieRepository, times(1)). update(any(Movie.class));
+    }
+}
+
+
+
