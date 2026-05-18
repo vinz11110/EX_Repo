@@ -42,9 +42,11 @@ public class MovieService {
         repository.add(movie);
     }
 
-    public void deleteMovie(UUID id) {
+    public void deleteMovie(String title, String genre, int releaseYear) {
         Movie movie = repository.findAll().stream()
-                .filter(m -> m.getId().equals(id)
+                .filter(m -> m.getTitle().equals(title) &&
+                                    m.getGenre().equals(genre) &&
+                                    m.getReleaseYear() == releaseYear
                 ).findFirst().orElseThrow(NoSuchElementException::new);
 
         boolean deleted = repository.delete(movie);

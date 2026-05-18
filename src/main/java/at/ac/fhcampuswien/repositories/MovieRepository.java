@@ -60,10 +60,12 @@ public class MovieRepository implements IMovieRepository {
     }
 
     public boolean delete(Movie movie){
-        String deleteSQL = "DELETE FROM movies WHERE id = ?";
+        String deleteSQL = "DELETE FROM movies WHERE title = ? AND genre = ? AND releaseYear = ?";
         try (Connection conn = DatabaseUtil.getConnection()) {
             try (PreparedStatement statement = conn.prepareStatement(deleteSQL)) {
-                statement.setObject(1, movie.getId());
+                statement.setString(1, movie.getTitle());
+                statement.setString(2, movie.getGenre());
+                statement.setInt(3, movie.getReleaseYear());
 
                 int rowsUpdated = statement.executeUpdate();
                 if(rowsUpdated == 0){
