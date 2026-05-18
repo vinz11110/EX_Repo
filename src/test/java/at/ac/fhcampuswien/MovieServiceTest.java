@@ -36,7 +36,8 @@ public class MovieServiceTest {
         testMovies = new ArrayList<>(Arrays.asList(
                 new Movie("The Machinist", "Thriller", 2005),
                 new Movie("Matrix", "Science-Fiction", 1999),
-                new Movie("No Country for Old Men", "Thriller", 2007)
+                new Movie("No Country for Old Men", "Thriller", 2007),
+                new Movie("Inception", "Sci-Fi", 2010)
         ));
 
         //injecting fake repostiory into MovieService
@@ -45,7 +46,7 @@ public class MovieServiceTest {
 
     @Test
     void should_throw_database_exception_when_deleting_movie_with_db_error() throws DatabaseException, MovieNotFoundException {
-        Movie movie = testMovies.get(0);
+        Movie movie = testMovies.get(3);
         when(movieRepository.findAll()).thenReturn(testMovies);
         when(movieRepository.delete(movie)).thenThrow(new DatabaseException("Database connection Error"));
         //verify that error has been caught correctly by the Database
@@ -59,7 +60,6 @@ public class MovieServiceTest {
         Movie updateData = new Movie("Unknown", "Drama", 2000);
         //Database can't find movie to update
         when(movieRepository.findAll()).thenReturn(testMovies);
-        doThrow(new MovieNotFoundException("Movie does not exist in database")).when(movieRepository).update(any(Movie.class));
 
         //MovieNotFoundException
         assertThrows(MovieNotFoundException.class, () -> {

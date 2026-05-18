@@ -52,6 +52,9 @@ public class MovieService {
                 ).findFirst().orElseThrow(NoSuchElementException::new);
 
         boolean deleted = repository.delete(movie);
+        if (!deleted){
+            throw new MovieNotFoundException("Invalid Movie Data provided");
+        }
     }
 
     public boolean updateMovie(UUID id, Movie updateData) throws MovieNotFoundException, DatabaseException {
@@ -60,7 +63,7 @@ public class MovieService {
                 .findFirst()
                 .orElse(null);
         if(movie == null){
-            return false;
+            throw new MovieNotFoundException("Invalid Movie Data provided");
         }
         movie.setTitle(updateData.getTitle());
         movie.setGenre(updateData.getGenre());
