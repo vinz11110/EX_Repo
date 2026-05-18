@@ -190,6 +190,9 @@ public class MovieController implements HttpHandler {
                  } catch (DatabaseException e) {
                      String response = "{ \"error\": \"Internal Server Error\" }";
                      ApiUtils.sendResponse(exchange, 500, response);
+                 }catch(IllegalArgumentException e){
+                     String response = "{ \"error\": \"Invalid movie Data\" }";
+                     ApiUtils.sendResponse(exchange, 400, response);
                  } catch (JsonSyntaxException e) {
                      String response = "{ \"error\": \"Malformed Json Syntax\" }";
                      ApiUtils.sendResponse(exchange, 400, response);
