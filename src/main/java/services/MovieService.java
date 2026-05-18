@@ -61,7 +61,7 @@ public class MovieService {
                 .findFirst()
                 .orElse(null);
         if(movie == null){
-            throw new MovieNotFoundException();
+            return false;
         }
         movie.setTitle(updateData.getTitle());
         movie.setGenre(updateData.getGenre());
@@ -71,7 +71,35 @@ public class MovieService {
     }
 
     public String searchMovies(String title, String genre, String releaseYear) {
-         return gson.toJson(repository.findAll());
+        List<Movie> filteredMovies = repository.findAll().stream()
+                .filter(movie -> {
+                    boolean matches = true;
+                    // Filter by title
+                    if (title != null && !title.isBlank()) {
+                        matches = matches &&
+                                movie.getTitle().toLowerCase()
+                                        .contains(title.toLowerCase());
+                    }
+                    // Filter by genre
+                    if (genre != null && !genre.isBlank()) {
+                        matches = matches &&
+                                movie.getGenre().contains(genre);
+                    }
+                    // Filter by release year
+                    if (releaseYear != null && !releaseYear.isBlank()) {
+                        try {
+                            int year = Integer.parseInt(releaseYear);
+                            matches = matches &&
+                                    movie.getReleaseYear() == year;
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("Invalid release year");
+                        }
+                    }
+                    return matches;
+                })
+                .toList();
+
+        return gson.toJson(filteredMovies);
     }
 }
 

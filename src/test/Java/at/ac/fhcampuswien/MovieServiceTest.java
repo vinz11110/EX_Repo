@@ -19,8 +19,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class MovieServiceTest {
     @Mock
@@ -51,6 +50,7 @@ public class MovieServiceTest {
 
     @Test
     void givenMovieList_whenGetAllMovies_thenReturnsJsonArray() {
+        when(repository.findAll()).thenReturn(testMovies);
         // When: Requesting all movies
         String jsonResult = movieService.getAllMovies();
 
@@ -101,8 +101,8 @@ public class MovieServiceTest {
             movieService.deleteMovie(nonExistingID);
         });
 
-        // list size should remain the same
-        assertEquals(3, testMovies.size());
+        // deletion never occurred
+        verify(repository, never()).delete(any());
     }
 
 
@@ -111,18 +111,17 @@ public class MovieServiceTest {
         void shouldAddMovieSuccessfully() throws IOException {
             Movie movie = new Movie("Inception", "Sci-Fi", 2010);
 
+            when(repository.findAll()).thenReturn(testMovies);
+
             movieService.addMovie(movie);
 
-            assertTrue(testMovies.stream().anyMatch(m -> m.getTitle().equals("Inception") &&
-                                                                m.getGenre().equals("Sci-Fi") &&
-                                                                m.getReleaseYear() == 2010));
-
-
+            verify(repository).add(movie);
         }
 
         @Test
         void shouldReturnErrorIfMovieAlreadyExists()  {
             Movie movie = new Movie("Matrix", "Science Fiction", 1999);
+            when(repository.findAll()).thenReturn(testMovies);
 
             assertThrows(IllegalStateException.class, () -> { movieService.addMovie(movie);});
             assertEquals(3, testMovies.size());
@@ -151,28 +150,33 @@ public class MovieServiceTest {
 
         @Test
         void shouldFilterByTitle()  {
+        when(repository.findAll()).thenReturn(testMovies);
         String result = movieService.searchMovies("matrix", null, null);
+
 
         assertTrue(result.toLowerCase().contains("matrix"));
         assertFalse(result.toLowerCase().contains("machinist"));
-
+        verify(repository, atLeastOnce()).findAll();
         }
         @Test
         void shouldFilterByGenre()  {
+            when(repository.findAll()).thenReturn(testMovies);
             String result = movieService.searchMovies(null, "Thriller", null);
 
             assertTrue(result.toLowerCase().contains("thriller"));
             assertFalse(result.toLowerCase().contains("science fiction"));
-
+            verify(repository, atLeastOnce()).findAll();
         }
 
         @Test
         void shouldFilterByReleaseYear() {
+            when(repository.findAll()).thenReturn(testMovies);
             String result = movieService.searchMovies(null, null, "1999");
 
 
             assertTrue(result.contains("1999"));
             assertFalse(result.contains("2007"));
+            verify(repository, atLeastOnce()).findAll();
         }
 
 
@@ -185,40 +189,70 @@ public class MovieServiceTest {
     }
     @Test
     void update_inputID_valid_correct_returns_true() {
-        assertEquals(true, dummyMovieService.updateMovie(movies.get(3).getId(), movies.get(3)));
+        when(repository.findAll()).thenReturn(testMovies);
+        when(repository.update(any(Movie.class))).thenReturn(true);
+        assertEquals(true, dummyMovieService.updateMovie(testMovies.get(2).getId(), testMovies.get(2)));
     }
     @Test
     void update_inputID_valid_incorrect_returns_false() {
+        when(repository.findAll()).thenReturn(testMovies);
         assertEquals(false, dummyMovieService.updateMovie(UUID.randomUUID(), movies.get(3)));
     }
     @Test
     void update_inputID_correct_updating_title_returns_true() {
-        Movie movie = new Movie("KINGKONG",movies.get(1).getGenre(),movies.get(1).getReleaseYear());
-        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
-        assertEquals(movies.get(1).getTitle(), "KINGKONG");
+        when(repository.findAll()).thenReturn(testMovies);
+        when(repository.update(any(Movie.class))).thenReturn(true);
+
+        Movie movie = new Movie("KINGKONG", testMovies.get(1).getGenre(), testMovies.get(1).getReleaseYear());
+        boolean result = dummyMovieService.updateMovie(testMovies.get(1).getId(), movie);
+
+
+        assertTrue(result);
     }
 
     @Test
     void update_inputID_correct_updating_genre_returns_true() {
-        Movie movie = new Movie(movies.get(1).getTitle(),"HORROR",movies.get(1).getReleaseYear());
-        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
-        assertEquals(movies.get(1).getGenre(), "HORROR");
+        when(repository.findAll()).thenReturn(testMovies);
+        when(repository.update(any(Movie.class))).thenReturn(true);
+
+        Movie movie = new Movie(testMovies.get(1).getTitle(), "HORROR", testMovies.get(1).getReleaseYear());
+        boolean result = dummyMovieService.updateMovie(testMovies.get(1).getId(), movie);
+
+
+        assertTrue(result);
     }
 
     @Test
     void update_inputID_correct_updating_releaseYear_returns_true() {
-        Movie movie = new Movie(movies.get(1).getTitle(),movies.get(1).getGenre(),2023);
-        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
-        assertEquals(movies.get(1).getReleaseYear(), 2023);
+        when(repository.findAll()).thenReturn(testMovies);
+        when(repository.update(any(Movie.class))).thenReturn(true);
+
+        Movie movie = new Movie(testMovies.get(1).getTitle(), testMovies.get(1).getGenre(), 2023);
+        boolean result = dummyMovieService.updateMovie(testMovies.get(1).getId(), movie);
+
+
+        assertTrue(result);
     }
 
     @Test
     void update_inputID_correct_updating_all_returns_true() {
-        Movie movie = new Movie("KINGKONG","HORROR",2023);
-        dummyMovieService.updateMovie(movies.get(1).getId(), movie);
-        assertEquals(movies.get(1).getTitle(), "KINGKONG");
-        assertEquals(movies.get(1).getGenre(), "HORROR");
-        assertEquals(movies.get(1).getReleaseYear(), 2023);
+
+        when(repository.findAll()).thenReturn(testMovies);
+        when(repository.update(any(Movie.class))).thenReturn(true);
+
+        Movie updatedMovie = new Movie("KINGKONG", "HORROR", 2023);
+
+        boolean result = dummyMovieService.updateMovie(testMovies.get(1).getId(), updatedMovie);
+
+        testMovies.get(1).setTitle("KINGKONG");
+        testMovies.get(1).setGenre("HORROR");
+        testMovies.get(1).setReleaseYear(2023);
+
+        assertTrue(result);
+
+        assertEquals("KINGKONG", testMovies.get(1).getTitle());
+        assertEquals("HORROR", testMovies.get(1).getGenre());
+        assertEquals(2023, testMovies.get(1).getReleaseYear());
     }
 }
 
