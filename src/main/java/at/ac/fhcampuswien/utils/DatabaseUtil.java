@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseUtil {
-    private static final String JDBC_URL = "jdbc:h2: /MovieDB";
+    private static final String JDBC_URL = "jdbc:h2:/MovieDB";
     private static final String USER = "user";
     private static final String PASSWORD = "pw";
 
