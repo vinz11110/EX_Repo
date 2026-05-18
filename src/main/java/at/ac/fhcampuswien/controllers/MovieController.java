@@ -2,6 +2,7 @@ package at.ac.fhcampuswien.controllers;
 
 import at.ac.fhcampuswien.ApiUtils;
 import at.ac.fhcampuswien.models.Movie;
+import at.ac.fhcampuswien.repositories.MovieRepository;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
@@ -15,9 +16,9 @@ import java.util.*;
 
 public class MovieController implements HttpHandler {
     private final String BASE = "/api/movies/";
-    private List<Movie> movies = Movie.generateDummyMovies();
+    MovieRepository repository = new MovieRepository();
     Gson gson = new Gson();
-    MovieService movieService = new MovieService(movies);
+    MovieService movieService = new MovieService(repository);
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -171,7 +172,7 @@ public class MovieController implements HttpHandler {
                  try {
                      InputStream inputStream = exchange.getRequestBody();
                      String requestBody = new String(inputStream.readAllBytes());
-                     Movie movie = gson.fromJson(requestBody, Movie.class);
+                     Movie movie = gson.fromJson(requestBody, Movie.class);;
                      String id = String.valueOf(movie.getId());
                      String title = movie.getTitle();
                      String genre = movie.getGenre();
@@ -181,7 +182,7 @@ public class MovieController implements HttpHandler {
                          String response = "{ \"error\": \"Invalid movie data\" }";
                          ApiUtils.sendResponse(exchange, 400, response);
                      } else {
-                         Movie movieObj = new Movie(title, genre, releaseYear);
+                         Movie movieObj = new Movie(UUID.fromString(id),title, genre, releaseYear);
                          movieService.updateMovie(UUID.fromString(id), movieObj);
 
                          String response = "{ \"message\": \"Movie updated successfully\" }";

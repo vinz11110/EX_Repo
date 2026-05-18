@@ -6,10 +6,12 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.*;
 import services.MovieService;
-
-
+import at.ac.fhcampuswien.repositories.*;
+import at.ac.fhcampuswien.models.Movie;
 import java.io.IOException;
+import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +19,13 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class MovieServiceTest {
+    @Mock
+    private IMovieRepository repository;
+
     private MovieService dummyMovieService;
     private MovieService movieService;
     private List<Movie> testMovies;
@@ -26,16 +33,18 @@ public class MovieServiceTest {
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
+
         // Initialize list of movies before taking a test
         testMovies = new ArrayList<>();
         testMovies.add(new Movie("The Machinist", "Thriller", 2005));
         testMovies.add(new Movie("Matrix", "Science Fiction", 1999));
         testMovies.add(new Movie("No Country for Old Men", "Thriller", 2007));
 
-        movieService = new MovieService(testMovies);
+        movieService = new MovieService(repository);
 
         movies = Movie.generateDummyMovies();
-        dummyMovieService = new MovieService(movies);
+        dummyMovieService = new MovieService(repository);
     }
 
     // Tests for getAllMovies()
@@ -56,7 +65,7 @@ public class MovieServiceTest {
     @Test
     void givenEmptyMovieList_whenGetAllMovies_thenReturnsEmptyJsonArray() {
         // Given: empty list
-        MovieService emptyService = new MovieService(new ArrayList<>());
+        MovieService emptyService = new MovieService(repository);
 
         // When: requesting all movies
         String jsonResult = emptyService.getAllMovies();
@@ -70,13 +79,15 @@ public class MovieServiceTest {
     @Test
     void givenExistingMovie_whenDeleteMovie_thenMovieIsRemovedFromList() {
         // Given: "No Country for Old Men" is in the list
+        Movie movieToDelete = testMovies.get(2);
 
         // When: Movie is deleted
-        movieService.deleteMovie("No Country for Old Men", "Thriller", 2007);
+        when(repository.findAll()).thenReturn(testMovies);
+        when(repository.delete(movieToDelete)).thenReturn(true);
 
+        movieService.deleteMovie(movieToDelete.getId());
         // Then: List should decrease in size and movie should be removed
-        assertEquals(2, testMovies.size());
-        assertFalse(testMovies.stream().anyMatch(m -> m.getTitle().equals("No Country for Old Men")));
+        verify(repository).delete(movieToDelete);
     }
 
     @Test
@@ -84,25 +95,16 @@ public class MovieServiceTest {
         // Given: Movie that doesn't exist in the list
 
         // When: Attempting to delete the movie should throw an exception
+        when(repository.findAll()).thenReturn(testMovies);
+        UUID nonExistingID = UUID.randomUUID();
         assertThrows(NoSuchElementException.class, () -> {
-            movieService.deleteMovie("Batman Begins", "Action", 2005);
+            movieService.deleteMovie(nonExistingID);
         });
 
         // list size should remain the same
         assertEquals(3, testMovies.size());
     }
 
-    @Test
-    void givenPartialMovieMatch_whenDeleteMovie_thenThrowsNoSuchElementException() {
-
-        // should throw an exception because movie doesn't fully match, in this case wrong releaseYear
-        assertThrows(NoSuchElementException.class, () -> {
-            movieService.deleteMovie("No Country for Old Men", "Thriller", 1999);
-        });
-
-        // list size should remain the same
-        assertEquals(3, testMovies.size());
-    }
 
 
         @Test

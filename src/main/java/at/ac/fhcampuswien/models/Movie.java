@@ -22,6 +22,12 @@ public class Movie {
         this.releaseYear = releaseYear;
         this.id = UUID.randomUUID();
     }
+    public Movie(UUID id, String title, String genre, int releaseYear){
+        this.id = id;
+        this.title = title;
+        this.genre = genre;
+        this.releaseYear = releaseYear;
+    }
 
 
     public String getTitle() {
