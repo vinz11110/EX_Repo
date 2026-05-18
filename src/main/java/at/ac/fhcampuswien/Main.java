@@ -23,17 +23,14 @@ public class Main {
         // Register controllers and their handlers - REST endpoints
         registerController(server, "/api/movies/", new MovieController());
 
-        // Start the server
-        server.setExecutor(null);
-        server.start();
-        System.out.printf("Server is running on http://localhost:%d", SERVER_PORT);
+        // Create SQL Database
         try (Connection conn = DatabaseUtil.getConnection()){
             String createTableSQL = "CREATE TABLE IF NOT EXISTS movies (" +
-                                    "id UUID PRIMARY KEY," +
-                                    "title VARCHAR(255) NOT NULL," +
-                                    "genre VARCHAR(100) NOT NULL," +
-                                    "releaseYear INT NOT NULL" +
-                                    ")";
+                    "id UUID PRIMARY KEY," +
+                    "title VARCHAR(255) NOT NULL," +
+                    "genre VARCHAR(100) NOT NULL," +
+                    "releaseYear INT NOT NULL" +
+                    ")";
             try (PreparedStatement pstmt = conn.prepareStatement(createTableSQL)){
                 pstmt.executeUpdate();
             }
@@ -41,6 +38,12 @@ public class Main {
         catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // Start the server
+        server.setExecutor(null);
+        server.start();
+        System.out.printf("Server is running on http://localhost:%d", SERVER_PORT);
+
     }
 
     private static void registerController(HttpServer server, String path, HttpHandler handler) {

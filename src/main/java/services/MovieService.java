@@ -61,7 +61,7 @@ public class MovieService {
                 .findFirst()
                 .orElse(null);
         if(movie == null){
-            return false;
+            throw new MovieNotFoundException();
         }
         movie.setTitle(updateData.getTitle());
         movie.setGenre(updateData.getGenre());

@@ -121,6 +121,7 @@ public class MovieController implements HttpHandler {
 
         try {
             Movie movie = gson.fromJson(requestBody, Movie.class);
+            UUID id = movie.getId();
             String title = movie.getTitle();
             String genre = movie.getGenre();
             int releaseYear = movie.getReleaseYear();
@@ -131,7 +132,7 @@ public class MovieController implements HttpHandler {
                 return;
             }
 
-            movieService.deleteMovie(title, genre, releaseYear);
+            movieService.deleteMovie(id);
 
             String response = "{ \"message\": \"Movie deleted successfully\" }";
             ApiUtils.sendResponse(exchange, 200, response);

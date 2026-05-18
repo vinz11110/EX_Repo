@@ -41,7 +41,7 @@ public class MovieRepository implements IMovieRepository {
                  ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     UUID id = (UUID) resultSet.getObject("id");
-                    String title = resultSet.getNString("title");
+                    String title = resultSet.getString("title");
                     String genre = resultSet.getString("genre");
                     int releaseYear = resultSet.getInt("releaseYear");
 
