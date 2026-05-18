@@ -1,6 +1,8 @@
 package at.ac.fhcampuswien.controllers;
 
 import at.ac.fhcampuswien.ApiUtils;
+import at.ac.fhcampuswien.exceptions.DatabaseException;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.repositories.MovieRepository;
 import com.google.gson.Gson;
@@ -129,7 +131,7 @@ public class MovieController implements HttpHandler {
                 return;
             }
 
-            movieService.deleteMovie(id);
+            movieService.deleteMovie(title, genre, releaseYear);
 
             String response = "{ \"message\": \"Movie deleted successfully\" }";
             ApiUtils.sendResponse(exchange, 200, response);

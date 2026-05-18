@@ -1,5 +1,7 @@
 package services;
 
+import at.ac.fhcampuswien.exceptions.DatabaseException;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.repositories.IMovieRepository;
 import at.ac.fhcampuswien.repositories.MovieRepository;
@@ -15,15 +17,15 @@ public class MovieService {
    private final IMovieRepository repository;
     Gson gson = new Gson();
 
-    public MovieService(IMovieRepository repository) {
+    public MovieService(MovieRepository repository) {
         this.repository = repository;
     }
 
-    public String getAllMovies() {
+    public String getAllMovies() throws DatabaseException {
         return gson.toJson(repository.findAll());
     }
 
-    public void addMovie(Movie movie) {
+    public void addMovie(Movie movie) throws DatabaseException {
         boolean exists = repository.findAll().stream().anyMatch(m ->
                 m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
                         m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
@@ -42,7 +44,7 @@ public class MovieService {
         repository.add(movie);
     }
 
-    public void deleteMovie(String title, String genre, int releaseYear) {
+    public void deleteMovie(String title, String genre, int releaseYear) throws MovieNotFoundException, DatabaseException {
         Movie movie = repository.findAll().stream()
                 .filter(m -> m.getTitle().equals(title) &&
                                     m.getGenre().equals(genre) &&
@@ -52,7 +54,7 @@ public class MovieService {
         boolean deleted = repository.delete(movie);
     }
 
-    public boolean updateMovie(UUID id, Movie updateData) {
+    public boolean updateMovie(UUID id, Movie updateData) throws MovieNotFoundException, DatabaseException {
         Movie movie = repository.findAll().stream()
                 .filter(m -> m.getId().equals(id))
                 .findFirst()
@@ -67,7 +69,7 @@ public class MovieService {
         return repository.update(movie);
     }
 
-    public String searchMovies(String title, String genre, String releaseYear) {
+    public String searchMovies(String title, String genre, String releaseYear) throws DatabaseException {
         List<Movie> filteredMovies = repository.findAll().stream()
                 .filter(movie -> {
                     boolean matches = true;

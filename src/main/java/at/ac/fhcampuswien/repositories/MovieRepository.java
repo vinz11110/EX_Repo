@@ -2,7 +2,8 @@ package at.ac.fhcampuswien.repositories;
 
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.utils.DatabaseUtil;
-
+import at.ac.fhcampuswien.exceptions.DatabaseException;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +15,7 @@ import java.util.UUID;
 public class MovieRepository implements IMovieRepository {
 
 
-    public void add(Movie movie) {
+    public void add(Movie movie) throws DatabaseException {
         try (Connection conn = DatabaseUtil.getConnection()){
             String insertSQL = "INSERT INTO movies(id,title,genre,releaseYear) VALUES (?,?,?,?)";
             try(PreparedStatement statement = conn.prepareStatement(insertSQL) ){
@@ -33,7 +34,7 @@ public class MovieRepository implements IMovieRepository {
         }
     }
 
-    public List<Movie> findAll(){
+    public List<Movie> findAll() throws DatabaseException {
         List<Movie> movies = new ArrayList<>();
 
         String querySQL = "SELECT * FROM movies";
@@ -59,7 +60,7 @@ public class MovieRepository implements IMovieRepository {
         return movies;
     }
 
-    public boolean delete(Movie movie){
+    public boolean delete(Movie movie) throws MovieNotFoundException, DatabaseException {
         String deleteSQL = "DELETE FROM movies WHERE title = ? AND genre = ? AND releaseYear = ?";
         try (Connection conn = DatabaseUtil.getConnection()) {
             try (PreparedStatement statement = conn.prepareStatement(deleteSQL)) {
@@ -80,7 +81,7 @@ public class MovieRepository implements IMovieRepository {
             throw new DatabaseException("Error in Databank");
         }
     }
-    public boolean update(Movie movie){
+    public boolean update(Movie movie) throws MovieNotFoundException, DatabaseException {
         String updateSQL = "UPDATE MOVIES SET title = ?, genre = ?, releaseYear = ? WHERE id = ?";
         try (Connection conn = DatabaseUtil.getConnection()) {
             try (PreparedStatement statement = conn.prepareStatement(updateSQL)) {

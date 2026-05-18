@@ -1,21 +1,17 @@
 package at.ac.fhcampuswien;
 
-import at.ac.fhcampuswien.controllers.MovieController;
 import at.ac.fhcampuswien.models.Movie;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import services.MovieRepository;
+import at.ac.fhcampuswien.repositories.MovieRepository;
 import services.MovieService;
-import at.ac.fhcampuswien.exceptions.DataBaseException;
+import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.*;
 
@@ -32,7 +28,7 @@ public class MovieServiceTest {
     private List<Movie> testMovies;
 
     @BeforeEach
-    void setUp() throws DataBaseException {
+    void setUp() throws DatabaseException {
         testMovies = new ArrayList<>(Arrays.asList(
                 new Movie("The Machinist", "Thriller", 2005),
                 new Movie("Matrix", "Science-Fiction", 1999),
@@ -43,16 +39,16 @@ public class MovieServiceTest {
     }
 
     @Test
-    void should_throw_database_exception_when_deleting_movie_with_db_error() throws DataBaseException, MovieNotFoundException {
-        doThrow(new DataBaseException("Database connection error")).when(movieRepository).delete(any(Movie.class));
+    void should_throw_database_exception_when_deleting_movie_with_db_error() throws DatabaseException, MovieNotFoundException {
+        doThrow(new DatabaseException("Database connection error")).when(movieRepository).delete(any(Movie.class));
 
-        assertThrows(DataBaseException.class, () -> {
+        assertThrows(DatabaseException.class, () -> {
             movieService.deleteMovie("Inception", "Sci-Fi", 2010);
         });
     }
 
     @Test
-    void should_throw_movie_not_found_exception_when_updating_non_existent_movie() throws DataBaseException, MovieNotFoundException {
+    void should_throw_movie_not_found_exception_when_updating_non_existent_movie() throws DatabaseException, MovieNotFoundException {
         Movie updateData = new Movie("Unkown", "Drama", 2000);
 
         doThrow(new MovieNotFoundException("Movie does not exist in database")).when(movieRepository).update(any(Movie.class));
@@ -63,7 +59,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void givenMovieList_whenGetAllMovies_thenReturnsJsonArray() throws DataBaseException {
+    void givenMovieList_whenGetAllMovies_thenReturnsJsonArray() throws DatabaseException {
         when(movieRepository.findAll()).thenReturn(testMovies);
 
         String jsonResult = movieService.getAllMovies();
@@ -75,14 +71,14 @@ public class MovieServiceTest {
     }
 
     @Test
-    void givenEmptyMovieList_whenGetAllMovies_thenReturnsEmptyJsonArray() throws DataBaseException {
+    void givenEmptyMovieList_whenGetAllMovies_thenReturnsEmptyJsonArray() throws DatabaseException {
         when(movieRepository.findAll()).thenReturn(new ArrayList<>());
         String jsonResult = movieService.getAllMovies();
         assertEquals("[]", jsonResult);
     }
 
     @Test
-    void shouldFilterByTitle() throws DataBaseException {
+    void shouldFilterByTitle() throws DatabaseException {
         when(movieRepository.findAll()).thenReturn(testMovies);
 
         String result = movieService.searchMovies("matrix", null, null);
@@ -92,7 +88,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void shouldFilterByGenre() throws DataBaseException {
+    void shouldFilterByGenre() throws DatabaseException {
         when(movieRepository.findAll()).thenReturn(testMovies);
 
         String result = movieService.searchMovies(null, "Thriller", null);
@@ -102,7 +98,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void shouldFilterByReleaseYear() throws DataBaseException {
+    void shouldFilterByReleaseYear() throws DatabaseException {
         when(movieRepository.findAll()).thenReturn(testMovies);
 
         String result = movieService.searchMovies(null, null, "1999");
@@ -112,7 +108,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void givenExistingMovie_whenDeleteMovie_thenRepositoryDeleteIsCalled() throws DataBaseException, MovieNotFoundException {
+    void givenExistingMovie_whenDeleteMovie_thenRepositoryDeleteIsCalled() throws DatabaseException, MovieNotFoundException {
         when(movieRepository.delete(any(Movie.class))).thenReturn(true);
 
         movieService.deleteMovie("No Country for Old Men", "Thriller", 2007);
@@ -121,7 +117,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void shouldAddMovieSuccessfully() throws IOException, DataBaseException {
+    void shouldAddMovieSuccessfully() throws IOException, DatabaseException {
         Movie movie = new Movie("Inception", "Sci-Fi", 2010);
 
         movieService.addMovie(movie);
@@ -149,7 +145,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void update_inputID_correct_return_true() throws DataBaseException, MovieNotFoundException {
+    void update_inputID_correct_return_true() throws DatabaseException, MovieNotFoundException {
         Movie movie = testMovies.get(1);
         when(movieRepository.update(any(Movie.class))).thenReturn(true);
 
