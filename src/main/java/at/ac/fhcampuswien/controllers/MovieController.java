@@ -169,16 +169,17 @@ public class MovieController implements HttpHandler {
                  try {
                      InputStream inputStream = exchange.getRequestBody();
                      String requestBody = new String(inputStream.readAllBytes());
-                     Movie movie = gson.fromJson(requestBody, Movie.class);
-
+                     Movie movie = gson.fromJson(requestBody, Movie.class);;
+                     String id = String.valueOf(movie.getId());
+                     String title = movie.getTitle();
+                     String genre = movie.getGenre();
                      int releaseYear = movie.getReleaseYear();
                      if (movie == null || movie.getId() == null || movie.getTitle() == null || movie.getGenre() == null || movie.getReleaseYear() <= 0) {
                          String response = "{ \"error\": \"Invalid movie data\" }";
                          ApiUtils.sendResponse(exchange, 400, response);
                      } else {
-                         String id = String.valueOf(movie.getId());
-
-                         movieService.updateMovie(UUID.fromString(id), movie);
+                         Movie movieObj = new Movie(UUID.fromString(id),title, genre, releaseYear);
+                         movieService.updateMovie(UUID.fromString(id), movieObj);
 
                          String response = "{ \"message\": \"Movie updated successfully\" }";
                          ApiUtils.sendResponse(exchange, 200, response);

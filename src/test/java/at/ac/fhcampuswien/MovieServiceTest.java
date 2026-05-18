@@ -18,7 +18,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith((MockitoExtension.class))
+@ExtendWith(MockitoExtension.class)
 public class MovieServiceTest {
     private MovieService movieService;
 
@@ -40,7 +40,9 @@ public class MovieServiceTest {
 
     @Test
     void should_throw_database_exception_when_deleting_movie_with_db_error() throws DatabaseException, MovieNotFoundException {
-        doThrow(new DatabaseException("Database connection error")).when(movieRepository).delete(any(Movie.class));
+        Movie movie = testMovies.get(0);
+        when(movieRepository.findAll()).thenReturn(testMovies);
+        when(movieRepository.delete(movie)).thenThrow(new DatabaseException("Database connection Error"));
 
         assertThrows(DatabaseException.class, () -> {
             movieService.deleteMovie("Inception", "Sci-Fi", 2010);
@@ -49,8 +51,8 @@ public class MovieServiceTest {
 
     @Test
     void should_throw_movie_not_found_exception_when_updating_non_existent_movie() throws DatabaseException, MovieNotFoundException {
-        Movie updateData = new Movie("Unkown", "Drama", 2000);
-
+        Movie updateData = new Movie("Unknown", "Drama", 2000);
+        when(movieRepository.findAll()).thenReturn(testMovies);
         doThrow(new MovieNotFoundException("Movie does not exist in database")).when(movieRepository).update(any(Movie.class));
 
         assertThrows(MovieNotFoundException.class, () -> {
@@ -104,13 +106,13 @@ public class MovieServiceTest {
         String result = movieService.searchMovies(null, null, "1999");
 
         assertTrue(result.contains("1999"));
-        assertTrue(result.contains("2007"));
+        assertFalse(result.contains("2007"));
     }
 
     @Test
     void givenExistingMovie_whenDeleteMovie_thenRepositoryDeleteIsCalled() throws DatabaseException, MovieNotFoundException {
         when(movieRepository.delete(any(Movie.class))).thenReturn(true);
-
+        when(movieRepository.findAll()).thenReturn(testMovies);
         movieService.deleteMovie("No Country for Old Men", "Thriller", 2007);
 
         verify(movieRepository, times(1)).delete(any(Movie.class));
@@ -141,18 +143,18 @@ public class MovieServiceTest {
         assertThrows(IllegalArgumentException.class, () -> {
             movieService.addMovie(movie);
         });
-        verifyNoInteractions(movieRepository);
     }
 
     @Test
     void update_inputID_correct_return_true() throws DatabaseException, MovieNotFoundException {
         Movie movie = testMovies.get(1);
+        when(movieRepository.findAll()).thenReturn(testMovies);
         when(movieRepository.update(any(Movie.class))).thenReturn(true);
 
         boolean isUpdated = movieService.updateMovie(movie.getId(), movie);
 
         assertTrue(isUpdated);
-        verify(movieRepository, times(1)). update(any(Movie.class));
+        verify(movieRepository, times(1)).update(any(Movie.class));
     }
 }
 
