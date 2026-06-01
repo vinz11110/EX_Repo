@@ -4,6 +4,7 @@ import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.utils.DatabaseUtil;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,11 +15,31 @@ import java.util.UUID;
 
 public class MovieRepository implements IMovieRepository {
 
+    public void create_DB_Table() {
+        // Create SQL Database
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS movies (" +
+                    "id UUID PRIMARY KEY," +
+                    "title VARCHAR(255) NOT NULL," +
+                    "genre VARCHAR(100) NOT NULL," +
+                    "releaseYear INT NOT NULL" +
+                    ")";
+            try (PreparedStatement pstmt = conn.prepareStatement(createTableSQL)) {
+                pstmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public void add(Movie movie) throws DatabaseException {
-        try (Connection conn = DatabaseUtil.getConnection()){
+    public void add(Object movieObj) throws DatabaseException {
+        Movie movie = null;
+        if (movieObj instanceof Movie) {
+            movie = (Movie) movieObj;
+        }
+        try (Connection conn = DatabaseUtil.getConnection()) {
             String insertSQL = "INSERT INTO movies(id,title,genre,releaseYear) VALUES (?,?,?,?)";
-            try(PreparedStatement statement = conn.prepareStatement(insertSQL) ){
+            try (PreparedStatement statement = conn.prepareStatement(insertSQL)) {
                 statement.setObject(1, movie.getId());
                 statement.setString(2, movie.getTitle());
                 statement.setString(3, movie.getGenre());
@@ -27,8 +48,7 @@ public class MovieRepository implements IMovieRepository {
                 statement.executeUpdate();
                 System.out.println("Movie added Successfully");
             }
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new DatabaseException("Error in Databank");
         }
@@ -52,15 +72,18 @@ public class MovieRepository implements IMovieRepository {
                 }
 
             }
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new DatabaseException("Error in Databank");
         }
         return movies;
     }
 
-    public boolean delete(Movie movie) throws MovieNotFoundException, DatabaseException {
+    public boolean delete(Object movieObj) throws MovieNotFoundException, DatabaseException {
+        Movie movie = null;
+        if (movieObj instanceof Movie) {
+            movie = (Movie) movieObj;
+        }
         String deleteSQL = "DELETE FROM movies WHERE title = ? AND genre = ? AND releaseYear = ?";
         try (Connection conn = DatabaseUtil.getConnection()) {
             try (PreparedStatement statement = conn.prepareStatement(deleteSQL)) {
@@ -69,19 +92,23 @@ public class MovieRepository implements IMovieRepository {
                 statement.setInt(3, movie.getReleaseYear());
 
                 int rowsUpdated = statement.executeUpdate();
-                if(rowsUpdated == 0){
+                if (rowsUpdated == 0) {
                     throw new MovieNotFoundException("Movie not found for deletion");
-                }else{
+                } else {
                     return true;
                 }
             }
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new DatabaseException("Error in Databank");
         }
     }
-    public boolean update(Movie movie) throws MovieNotFoundException, DatabaseException {
+
+    public boolean update(Object movieObj) throws MovieNotFoundException, DatabaseException {
+        Movie movie = null;
+        if (movieObj instanceof Movie) {
+            movie = (Movie) movieObj;
+        }
         String updateSQL = "UPDATE MOVIES SET title = ?, genre = ?, releaseYear = ? WHERE id = ?";
         try (Connection conn = DatabaseUtil.getConnection()) {
             try (PreparedStatement statement = conn.prepareStatement(updateSQL)) {
@@ -90,14 +117,13 @@ public class MovieRepository implements IMovieRepository {
                 statement.setInt(3, movie.getReleaseYear());
                 statement.setObject(4, movie.getId());
 
-                if(statement.executeUpdate()==0){
+                if (statement.executeUpdate() == 0) {
                     throw new MovieNotFoundException("No Movie found to update");
-                }else{
-                return true;
+                } else {
+                    return true;
                 }
             }
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new DatabaseException("Error in Databank");
         }

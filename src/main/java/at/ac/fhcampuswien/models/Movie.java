@@ -13,16 +13,18 @@ public class Movie {
     private int releaseYear;
 
 
-    public Movie(){
+    public Movie() {
         this.id = UUID.randomUUID();
     }
-    public Movie(String title, String genre, int releaseYear){
+
+    public Movie(String title, String genre, int releaseYear) {
         this.title = title;
         this.genre = genre;
         this.releaseYear = releaseYear;
         this.id = UUID.randomUUID();
     }
-    public Movie(UUID id, String title, String genre, int releaseYear){
+
+    public Movie(UUID id, String title, String genre, int releaseYear) {
         this.id = id;
         this.title = title;
         this.genre = genre;
@@ -33,23 +35,28 @@ public class Movie {
     public String getTitle() {
         return title;
     }
+
     public String getGenre() {
         return genre;
     }
+
     public int getReleaseYear() {
         return releaseYear;
     }
-    public UUID getId(){
+
+    public UUID getId() {
         return id;
     }
 
-    public void setTitle(String title){
+    public void setTitle(String title) {
         this.title = title;
     }
-    public void setGenre(String genre){
+
+    public void setGenre(String genre) {
         this.genre = genre;
     }
-    public void setReleaseYear(int releaseYear){
+
+    public void setReleaseYear(int releaseYear) {
         this.releaseYear = releaseYear;
     }
 
@@ -60,20 +67,20 @@ public class Movie {
     }
 
 
-    public static List<Movie> generateDummyMovies(){
-        List<Movie> movies = new ArrayList<>();
-        Random random = new Random();
-
-        String[] titles = {"Inception","The Dark knight","A Beautiful Mind","The Machinist","Parasite","The Lord of the Rings"};
-        String[] genres = {"Action", "Comedy","Sci-Fi", "Drama", "Horror", "Romance", "Thriller", };
-
-        for (int i = 0; i < 20; i++){
-            String title = titles[random.nextInt(titles.length)];
-            String genre = genres[random.nextInt(genres.length)];
-            int year = 1960 + random.nextInt(66);
-
-            movies.add(new Movie(title, genre, year));
-        }
-        return movies;
-    }
+//    public static List<Movie> generateDummyMovies(){
+//        List<Movie> movies = new ArrayList<>();
+//        Random random = new Random();
+//
+//        String[] titles = {"Inception","The Dark knight","A Beautiful Mind","The Machinist","Parasite","The Lord of the Rings"};
+//        String[] genres = {"Action", "Comedy","Sci-Fi", "Drama", "Horror", "Romance", "Thriller", };
+//
+//        for (int i = 0; i < 20; i++){
+//            String title = titles[random.nextInt(titles.length)];
+//            String genre = genres[random.nextInt(genres.length)];
+//            int year = 1960 + random.nextInt(66);
+//
+//            movies.add(new Movie(title, genre, year));
+//        }
+//        return movies;
+//    }
 }

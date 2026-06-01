@@ -1,6 +1,7 @@
 package at.ac.fhcampuswien;
 
 import at.ac.fhcampuswien.models.Movie;
+import at.ac.fhcampuswien.repositories.IMovieRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,13 +27,13 @@ public class MovieServiceTest {
 
     //mocked version of database
     @Mock
-    private MovieRepository movieRepository;
+    private IMovieRepository movieRepository;
 
     //list of movies that is being tested
     private List<Movie> testMovies;
 
     @BeforeEach
-    void setUp() throws DatabaseException {
+    void setUp() {
         testMovies = new ArrayList<>(Arrays.asList(
                 new Movie("The Machinist", "Thriller", 2005),
                 new Movie("Matrix", "Science-Fiction", 1999),
@@ -56,7 +57,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void should_throw_movie_not_found_exception_when_updating_non_existent_movie() throws DatabaseException, MovieNotFoundException {
+    void should_throw_movie_not_found_exception_when_updating_non_existent_movie() throws DatabaseException{
         Movie updateData = new Movie("Unknown", "Drama", 2000);
         //Database can't find movie to update
         when(movieRepository.findAll()).thenReturn(testMovies);
@@ -136,7 +137,7 @@ public class MovieServiceTest {
     }
 
     @Test
-    void shouldAddMovieSuccessfully() throws IOException, DatabaseException {
+    void shouldAddMovieSuccessfully() throws DatabaseException {
         Movie movie = new Movie("Inception", "Sci-Fi", 2010);
         //adding movie
         movieService.addMovie(movie);

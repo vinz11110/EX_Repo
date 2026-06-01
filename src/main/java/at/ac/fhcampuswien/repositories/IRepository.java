@@ -2,14 +2,9 @@ package at.ac.fhcampuswien.repositories;
 
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
-import at.ac.fhcampuswien.models.Movie;
 
-import java.util.List;
-
-public interface IMovieRepository extends IRepository {
+public interface IRepository {
     void add(Object object) throws DatabaseException;
-
-    List<Movie> findAll() throws DatabaseException;
 
     boolean delete(Object object) throws MovieNotFoundException, DatabaseException;
 

@@ -4,20 +4,19 @@ import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.repositories.IMovieRepository;
-import at.ac.fhcampuswien.repositories.MovieRepository;
+import at.ac.fhcampuswien.repositories.IRepository;
 import com.google.gson.Gson;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 public class MovieService {
-   private final IMovieRepository repository;
+    private final IMovieRepository repository;
     Gson gson = new Gson();
 
-    public MovieService(MovieRepository repository) {
+    public MovieService(IMovieRepository repository) {
         this.repository = repository;
     }
 
@@ -37,7 +36,7 @@ public class MovieService {
                 movie.getReleaseYear() > 2100) {
 
             throw new IllegalArgumentException();
-        }else if (exists) {
+        } else if (exists) {
             throw new IllegalStateException();
         }
 
@@ -47,12 +46,12 @@ public class MovieService {
     public void deleteMovie(String title, String genre, int releaseYear) throws MovieNotFoundException, DatabaseException {
         Movie movie = repository.findAll().stream()
                 .filter(m -> m.getTitle().equals(title) &&
-                                    m.getGenre().equals(genre) &&
-                                    m.getReleaseYear() == releaseYear
+                        m.getGenre().equals(genre) &&
+                        m.getReleaseYear() == releaseYear
                 ).findFirst().orElseThrow(NoSuchElementException::new);
 
         boolean deleted = repository.delete(movie);
-        if (!deleted){
+        if (!deleted) {
             throw new MovieNotFoundException("Invalid Movie Data provided");
         }
     }
@@ -62,7 +61,7 @@ public class MovieService {
                 .filter(m -> m.getId().equals(id))
                 .findFirst()
                 .orElse(null);
-        if(movie == null){
+        if (movie == null) {
             throw new MovieNotFoundException("Invalid Movie Data provided");
         }
         movie.setTitle(updateData.getTitle());

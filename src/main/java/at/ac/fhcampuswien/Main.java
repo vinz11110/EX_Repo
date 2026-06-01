@@ -3,6 +3,7 @@ package at.ac.fhcampuswien;
 import at.ac.fhcampuswien.controllers.HelloController;
 import at.ac.fhcampuswien.controllers.MovieController;
 import at.ac.fhcampuswien.models.Movie;
+import at.ac.fhcampuswien.repositories.MovieRepository;
 import at.ac.fhcampuswien.utils.DatabaseUtil;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpHandler;
@@ -23,21 +24,8 @@ public class Main {
         // Register controllers and their handlers - REST endpoints
         registerController(server, "/api/movies/", new MovieController());
 
-        // Create SQL Database
-        try (Connection conn = DatabaseUtil.getConnection()){
-            String createTableSQL = "CREATE TABLE IF NOT EXISTS movies (" +
-                    "id UUID PRIMARY KEY," +
-                    "title VARCHAR(255) NOT NULL," +
-                    "genre VARCHAR(100) NOT NULL," +
-                    "releaseYear INT NOT NULL" +
-                    ")";
-            try (PreparedStatement pstmt = conn.prepareStatement(createTableSQL)){
-                pstmt.executeUpdate();
-            }
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
+        MovieRepository repo = new MovieRepository();
+        repo.create_DB_Table();
 
         // Start the server
         server.setExecutor(null);
