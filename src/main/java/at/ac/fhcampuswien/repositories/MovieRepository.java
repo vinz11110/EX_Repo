@@ -15,6 +15,9 @@ import java.util.UUID;
 public class MovieRepository implements IMovieRepository {
 
 
+    public static MovieRepository getMovieRepository() {
+    }
+
     public void add(Movie movie) throws DatabaseException {
         try (Connection conn = DatabaseUtil.getConnection()){
             String insertSQL = "INSERT INTO movies(id,title,genre,releaseYear) VALUES (?,?,?,?)";

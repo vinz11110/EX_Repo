@@ -1,15 +1,19 @@
 package at.ac.fhcampuswien.controllers;
 
+import at.ac.fhcampuswien.Adapter;
 import at.ac.fhcampuswien.ApiUtils;
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.repositories.MovieRepository;
-import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import services.MovieService;
+import services.SearchStrategy.GenreSearchStrategy;
+import services.SearchStrategy.ReleaseYearSearchStrategy;
+import services.SearchStrategy.SearchStrategy;
+import services.SearchStrategy.TitleSearchStrategy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +22,9 @@ import java.util.*;
 
 public class MovieController implements HttpHandler {
     private final String BASE = "/api/movies/";
-    MovieRepository repository = new MovieRepository();
-    Gson gson = new Gson();
+    MovieRepository repository = MovieRepository.getMovieRepository();
     MovieService movieService = new MovieService(repository);
+    Adapter adapter = new Adapter();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -72,7 +76,7 @@ public class MovieController implements HttpHandler {
             case "POST" -> {
             try{
                 String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                Movie movie = gson.fromJson(requestBody, Movie.class);
+                Movie movie = adapter.getMovieObjectFromJson(requestBody);
 
                movieService.addMovie(movie);
 
@@ -119,7 +123,7 @@ public class MovieController implements HttpHandler {
         }
 
         try {
-            Movie movie = gson.fromJson(requestBody, Movie.class);
+            Movie movie = adapter.getMovieObjectFromJson(requestBody);
             UUID id = movie.getId();
             String title = movie.getTitle();
             String genre = movie.getGenre();
@@ -169,7 +173,7 @@ public class MovieController implements HttpHandler {
                  try {
                      InputStream inputStream = exchange.getRequestBody();
                      String requestBody = new String(inputStream.readAllBytes());
-                     Movie movie = gson.fromJson(requestBody, Movie.class);;
+                     Movie movie = adapter.getMovieObjectFromJson(requestBody);
                      String id = String.valueOf(movie.getId());
                      String title = movie.getTitle();
                      String genre = movie.getGenre();
@@ -220,11 +224,25 @@ public class MovieController implements HttpHandler {
         // Parse into Map
         Map<String, String> params = ApiUtils.parseQueryParams(query);
 
+        SearchStrategy strategy;
         String title = params.get("title");
         String genre = params.get("genre");
         String yearStr = params.get("releaseYear");
         try{
-            String response = movieService.searchMovies(title,genre, yearStr);
+            if(title != null){
+                strategy = new TitleSearchStrategy(title);
+            }
+            if(genre != null){
+                strategy = new GenreSearchStrategy(genre);
+            }
+            if(yearStr != null){
+                strategy = new ReleaseYearSearchStrategy(yearStr);
+            }
+            else {
+                throw new IllegalArgumentException("No search Parameters provided");
+            }
+            List<Movie> movies = movieService.searchMovies(strategy);
+            String response = adapter.getJsonFromMovieList(movies);
             ApiUtils.sendResponse(exchange, 200, response);
         }catch(DatabaseException e){
             String response = "{ \"error\": \"Internal Server Error\" }";

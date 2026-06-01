@@ -1,7 +1,7 @@
 package at.ac.fhcampuswien.exceptions;
 
-public class DataBaseException extends Exception{
-    public DataBaseException(String message) {
+public class DatabaseException extends Exception{
+    public DatabaseException(String message) {
         super(message);
     }
 }
