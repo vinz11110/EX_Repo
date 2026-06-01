@@ -1,27 +1,29 @@
 package services;
 
+import at.ac.fhcampuswien.Adapter;
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.repositories.IMovieRepository;
-import at.ac.fhcampuswien.repositories.IRepository;
-import com.google.gson.Gson;
+import at.ac.fhcampuswien.repositories.MovieRepository;
+import services.SearchStrategy.SearchStrategy;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 public class MovieService {
-    private final IMovieRepository repository;
-    Gson gson = new Gson();
+   private final IMovieRepository repository;
+    Adapter adapter = new Adapter();
 
     public MovieService(IMovieRepository repository) {
         this.repository = repository;
     }
 
     public String getAllMovies() throws DatabaseException {
-        return gson.toJson(repository.findAll());
+        return adapter.getJsonFromMovieList(repository.findAll());
     }
 
     public void addMovie(Movie movie) throws DatabaseException {
@@ -71,36 +73,10 @@ public class MovieService {
         return repository.update(movie);
     }
 
-    public String searchMovies(String title, String genre, String releaseYear) throws DatabaseException {
-        List<Movie> filteredMovies = repository.findAll().stream()
-                .filter(movie -> {
-                    boolean matches = true;
-                    // Filter by title
-                    if (title != null && !title.isBlank()) {
-                        matches = matches &&
-                                movie.getTitle().toLowerCase()
-                                        .contains(title.toLowerCase());
-                    }
-                    // Filter by genre
-                    if (genre != null && !genre.isBlank()) {
-                        matches = matches &&
-                                movie.getGenre().contains(genre);
-                    }
-                    // Filter by release year
-                    if (releaseYear != null && !releaseYear.isBlank()) {
-                        try {
-                            int year = Integer.parseInt(releaseYear);
-                            matches = matches &&
-                                    movie.getReleaseYear() == year;
-                        } catch (NumberFormatException e) {
-                            throw new IllegalArgumentException("Invalid release year");
-                        }
-                    }
-                    return matches;
-                })
-                .toList();
+    public List<Movie> searchMovies(SearchStrategy strategy) throws DatabaseException {
+        List<Movie> movies = repository.findAll();
 
-        return gson.toJson(filteredMovies);
+        return strategy.search(movies);
     }
 }
 
