@@ -24,7 +24,7 @@ import java.util.*;
 
 public class MovieController extends IController implements HttpHandler {
     private final String BASE = "/api/movies/";
-    IMovieRepository repository = new MovieRepository();
+    IMovieRepository repository = MovieRepository.getInstance();
     Gson gson = new Gson();
     MovieService movieService = new MovieService(repository);
     Adapter adapter = new Adapter();

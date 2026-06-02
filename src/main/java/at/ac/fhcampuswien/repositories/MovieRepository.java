@@ -14,6 +14,16 @@ import java.util.List;
 import java.util.UUID;
 
 public class MovieRepository implements IMovieRepository {
+    private static MovieRepository repositoryInstance;
+
+    private MovieRepository(){}
+
+    public static MovieRepository getInstance(){
+        if(repositoryInstance == null){
+            repositoryInstance = new MovieRepository();
+        }
+        return repositoryInstance;
+    }
 
 
     public void create_DB_Table() {

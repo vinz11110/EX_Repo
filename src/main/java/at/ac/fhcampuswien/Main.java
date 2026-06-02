@@ -24,7 +24,7 @@ public class Main {
         // Register controllers and their handlers - REST endpoints
         registerController(server, "/api/movies/", new MovieController());
 
-        MovieRepository repo = new MovieRepository();
+        MovieRepository repo = MovieRepository.getInstance();
         repo.create_DB_Table();
 
         // Start the server
